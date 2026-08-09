@@ -303,6 +303,38 @@
                         <div class="pt-2 flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl transition text-xs">حفظ التعديلات 💾</button></div>
                     </form>
                 </div>
+
+                <!-- ===== قسم تغيير بيانات الدخول ===== -->
+                <div class="bg-slate-800/90 p-6 rounded-2xl border border-rose-500/30 space-y-5 shadow-xl">
+                    <div class="border-b border-slate-700 pb-3">
+                        <h4 class="text-base font-black text-rose-400 flex items-center gap-2"><i class="fa-solid fa-lock text-lg"></i><span>تغيير بيانات الدخول</span></h4>
+                        <p class="text-xs text-slate-400 mt-1">تغيير البريد الإلكتروني أو كلمة المرور لحسابك</p>
+                    </div>
+                    <!-- البريد الحالي -->
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
+                        <span class="text-slate-400 font-bold">📧 البريد الحالي:</span>
+                        <span id="currentEmailDisplay" class="font-mono text-teal-300">---</span>
+                    </div>
+                    <!-- تغيير البريد الإلكتروني -->
+                    <form onsubmit="handleChangeEmail(event)" class="space-y-3 text-xs">
+                        <p class="text-slate-300 font-bold text-xs">🔄 تغيير البريد الإلكتروني</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div><label class="text-slate-300 font-bold block mb-1">البريد الجديد</label><input type="email" id="newEmailInput" required placeholder="new@example.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الحالية (للتأكيد)</label><input type="password" id="currentPassForEmail" required placeholder="كلمة مرورك الحالية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
+                        </div>
+                        <div class="flex justify-end"><button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs">تغيير البريد 📧</button></div>
+                    </form>
+                    <div class="border-t border-slate-700 pt-1"></div>
+                    <!-- تغيير كلمة المرور -->
+                    <form onsubmit="handleChangePassword(event)" class="space-y-3 text-xs">
+                        <p class="text-slate-300 font-bold text-xs">🔑 تغيير كلمة المرور</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الحالية</label><input type="password" id="currentPassInput" required placeholder="كلمة مرورك الحالية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الجديدة (6 أحرف+)</label><input type="password" id="newPassInput" required minlength="6" placeholder="كلمة مرور جديدة قوية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
+                        </div>
+                        <div class="flex justify-end"><button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs">تغيير كلمة المرور 🔑</button></div>
+                    </form>
+                </div>
             </div>
         </section>
     </main>
@@ -490,8 +522,9 @@
          ================================================================ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ================================================================
         // ⚠️ FIX #1 — ضع Firebase Config الحقيقي هنا
@@ -585,6 +618,20 @@
 
             try {
                 const app = initializeApp(firebaseConfig);
+
+                // ================================================================
+                // App Check — ضع مفتاح reCAPTCHA v3 هنا بعد تفعيله من:
+                // https://www.google.com/recaptcha/admin/create
+                // ================================================================
+                const RECAPTCHA_SITE_KEY = 'YOUR_RECAPTCHA_SITE_KEY_HERE';
+                if (RECAPTCHA_SITE_KEY !== 'YOUR_RECAPTCHA_SITE_KEY_HERE') {
+                    initializeAppCheck(app, {
+                        provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
+                        isTokenAutoRefreshEnabled: true
+                    });
+                    console.log('✅ Firebase App Check مفعّل');
+                }
+
                 auth = getAuth(app);
                 db = getFirestore(app);
 
@@ -723,18 +770,75 @@
             document.getElementById('clinicMapModal').classList.remove('hidden');
         };
 
-        window.handleClinicLogin = function(e) {
+        // ================================================================
+        // تسجيل الدخول عبر Firebase Auth (Email/Password)
+        // تم استبدال المقارنة الأمنية في JavaScript بـ Firebase Authentication
+        // ================================================================
+        window.handleClinicLogin = async function(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim().toLowerCase();
             const pass = document.getElementById('loginPassword').value.trim();
-            const cd = clinicsList.find(c => (c.doctorEmail || '').toLowerCase() === email && c.doctorPass === pass);
-            const cs = clinicsList.find(c => (c.secEmail || '').toLowerCase() === email && c.secPass === pass);
-            if (cd) { loggedInClinicId = cd.id; currentClinicRole = 'doctor'; localStorage.setItem('mawaed_logged_clinic_id', loggedInClinicId); localStorage.setItem('mawaed_logged_role', 'doctor'); window.closeClinicLoginModal(); window.updateNavState(); window.showView('clinicDashboard'); window.showToast(`أهلاً دكتور ${cd.doctorName}!`, '👨‍⚕️'); }
-            else if (cs) { loggedInClinicId = cs.id; currentClinicRole = 'secretary'; localStorage.setItem('mawaed_logged_clinic_id', loggedInClinicId); localStorage.setItem('mawaed_logged_role', 'secretary'); window.closeClinicLoginModal(); window.updateNavState(); window.showView('clinicDashboard'); window.showToast(`مرحباً سكرتارية عيادة (${cs.name})!`, '👩‍💼'); }
-            else window.showToast('خطأ في بيانات الدخول!', '❌');
+            const loginForm = e.target;
+            const btn = loginForm.querySelector('button[type="submit"]') || loginForm.querySelector('button');
+            if (btn) { btn.disabled = true; btn.textContent = 'جاري الدخول...'; }
+
+            try {
+                // تسجيل الدخول بـ Firebase Auth
+                const cred = await signInWithEmailAndPassword(auth, email, pass);
+                const uid = cred.user.uid;
+                currentUser = cred.user;
+
+                // قراءة الصلاحية من Firestore
+                const roleRef = doc(db, 'artifacts', appId, 'roles', uid);
+                const roleSnap = await getDoc(roleRef);
+
+                if (!roleSnap.exists()) {
+                    await signOut(auth);
+                    await signInAnonymously(auth);
+                    currentUser = auth.currentUser;
+                    throw new Error('لم يتم العثور على صلاحيات لهذا الحساب. تواصل مع المسؤول.');
+                }
+
+                const { role, clinicId } = roleSnap.data();
+                loggedInClinicId = clinicId;
+                currentClinicRole = role;
+                localStorage.setItem('mawaed_logged_clinic_id', String(clinicId));
+                localStorage.setItem('mawaed_logged_role', role);
+
+                window.closeClinicLoginModal();
+                window.updateNavState();
+                window.showView('clinicDashboard');
+
+                const clinic = clinicsList.find(c => Number(c.id) === Number(clinicId));
+                if (role === 'doctor') window.showToast(`أهلاً دكتور ${clinic?.doctorName || ''}! 👨‍⚕️`, '👨‍⚕️');
+                else window.showToast(`مرحباً سكرتارية عيادة ${clinic?.name || ''}! 👩‍💼`, '👩‍💼');
+
+            } catch (err) {
+                console.error('Login error:', err);
+                const friendlyMsg =
+                    err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found'
+                        ? 'خطأ في البريد الإلكتروني أو كلمة المرور!'
+                        : err.code === 'auth/too-many-requests'
+                            ? 'محاولات كثيرة! انتظر قليلاً وحاول مرة أخرى.'
+                            : err.message || 'خطأ في تسجيل الدخول';
+                window.showToast(`❌ ${friendlyMsg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
+            }
         };
 
-        window.logoutClinic = function() { loggedInClinicId = null; currentClinicRole = null; localStorage.removeItem('mawaed_logged_clinic_id'); localStorage.removeItem('mawaed_logged_role'); window.updateNavState(); window.showView('patientLanding'); window.showToast('تم تسجيل الخروج.', '🚪'); };
+        window.logoutClinic = async function() {
+            try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
+            // إعادة الدخول كـ مريض مجهول
+            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
+            loggedInClinicId = null;
+            currentClinicRole = null;
+            localStorage.removeItem('mawaed_logged_clinic_id');
+            localStorage.removeItem('mawaed_logged_role');
+            window.updateNavState();
+            window.showView('patientLanding');
+            window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
+        };
 
         window.showView = function(v) {
             document.getElementById('viewPatientLanding').classList.add('hidden');
@@ -917,7 +1021,71 @@
                 const el = document.getElementById(id);
                 if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address }[id];
             });
+            // عرض البريد الإلكتروني الحالي من Firebase Auth
+            const emailDisplay = document.getElementById('currentEmailDisplay');
+            if (emailDisplay && auth?.currentUser?.email) emailDisplay.textContent = auth.currentUser.email;
         }
+
+        // ================================================================
+        // تغيير البريد الإلكتروني عبر Firebase Auth
+        // ================================================================
+        window.handleChangeEmail = async function(e) {
+            e.preventDefault();
+            const newEmail = document.getElementById('newEmailInput').value.trim();
+            const currentPass = document.getElementById('currentPassForEmail').value.trim();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
+            try {
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير البريد
+                await updateEmail(auth.currentUser, newEmail);
+                document.getElementById('currentEmailDisplay').textContent = newEmail;
+                document.getElementById('newEmailInput').value = '';
+                document.getElementById('currentPassForEmail').value = '';
+                window.showToast('✅ تم تغيير البريد الإلكتروني بنجاح!', '📧');
+            } catch (err) {
+                console.error('Email update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً!'
+                    : err.message || 'فشل تغيير البريد!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير البريد 📧'; }
+            }
+        };
+
+        // ================================================================
+        // تغيير كلمة المرور عبر Firebase Auth
+        // ================================================================
+        window.handleChangePassword = async function(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPassInput').value.trim();
+            const newPass = document.getElementById('newPassInput').value.trim();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
+            try {
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير كلمة المرور
+                await updatePassword(auth.currentUser, newPass);
+                document.getElementById('currentPassInput').value = '';
+                document.getElementById('newPassInput').value = '';
+                window.showToast('✅ تم تغيير كلمة المرور بنجاح!', '🔑');
+            } catch (err) {
+                console.error('Password update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/weak-password' ? 'كلمة المرور الجديدة ضعيفة جداً! (6 أحرف على الأقل)'
+                    : err.message || 'فشل تغيير كلمة المرور!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير كلمة المرور 🔑'; }
+            }
+        };
 
         window.handleEditClinicSubmit = async function(e) {
             e.preventDefault();
