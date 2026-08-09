@@ -860,16 +860,39 @@
                 <!-- JS Populated -->
             </div>
 
-            <div id="contactUsEditBtnContainer" class="hidden pt-2 border-t border-slate-700/80 flex justify-end">
+            <!-- Admin Direct Edit Button - Always Visible inside Contact Us Modal -->
+            <div id="contactUsEditBtnContainer" class="pt-2 border-t border-slate-700/80 flex justify-end">
                 <button onclick="openEditContactUsModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-4 py-2 rounded-xl font-bold transition flex items-center gap-2 shadow-lg shadow-amber-500/20">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>تعديل بيانات اتصل بنا والدعم</span>
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>تعديل بيانات اتصل بنا والدعم (خاص بالأدمن)</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 6B: EDIT CONTACT US MODAL (PROTECTED BY PASSCODE 2468) -->
+    <!-- MODAL 6B-1: ADMIN PASSCODE MODAL FOR CONTACT US EDIT -->
+    <div id="passcodeModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-xs rounded-3xl border border-amber-500/40 p-6 space-y-4 relative shadow-2xl text-center">
+            <button onclick="closePasscodeModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-2xl border border-amber-500/30 mx-auto flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-black text-white">رمز مرور الأدمن</h3>
+                <p class="text-xs text-slate-400 mt-1">أدخل كلمة المرور للانتقال للوحة التعديل</p>
+            </div>
+            <div class="space-y-3">
+                <input type="password" id="adminPasscodeInput" placeholder="••••" maxlength="10" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-center text-white text-lg font-mono focus:outline-none focus:border-amber-400">
+                <button onclick="verifyAdminPasscode()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">
+                    تأكيد الدخول 🔓
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6B: EDIT CONTACT US MODAL -->
     <div id="editContactUsModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl border border-amber-500/40 p-6 space-y-4 relative shadow-2xl">
             <button onclick="closeEditContactUsModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white">
@@ -884,10 +907,6 @@
             </div>
 
             <form onsubmit="handleEditContactUsSubmit(event)" class="space-y-3 text-xs">
-                <div>
-                    <label class="text-amber-400 font-bold block mb-1">🔒 كلمة المرور لتأكيد التعديل *</label>
-                    <input type="password" id="editContactPasscode" required placeholder="أدخل كلمة المرور (2468)" class="w-full p-2.5 bg-slate-900 border border-amber-500/60 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono">
-                </div>
                 <div>
                     <label class="text-slate-300 font-bold block mb-1">الهاتف والخط الساخن *</label>
                     <input type="text" id="editContactPhone" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400">
@@ -1168,23 +1187,37 @@
 
             const editBtnContainer = document.getElementById('contactUsEditBtnContainer');
             if (editBtnContainer) {
-                if (loggedInClinicId) {
-                    editBtnContainer.classList.remove('hidden');
-                } else {
-                    editBtnContainer.classList.add('hidden');
-                }
+                // Always show the admin edit button inside the contact us modal
+                editBtnContainer.classList.remove('hidden');
             }
         }
 
         function openEditContactUsModal() {
+            // Step 1: Open Passcode Prompt First
+            document.getElementById('adminPasscodeInput').value = '';
+            document.getElementById('passcodeModal').classList.remove('hidden');
+        }
+
+        function closePasscodeModal() {
+            document.getElementById('passcodeModal').classList.add('hidden');
+        }
+
+        function verifyAdminPasscode() {
+            const code = document.getElementById('adminPasscodeInput').value.trim();
+            if (code === '2468') {
+                closePasscodeModal();
+                showContactEditForm();
+            } else {
+                showToast('كلمة المرور غير صحيحة! يرجى إدخال رمز الأدمن الصحيح.', '❌');
+            }
+        }
+
+        function showContactEditForm() {
             contactInfo = getStorage('mawaed_contact_info_v2', DEFAULT_CONTACT_INFO);
             document.getElementById('editContactPhone').value = contactInfo.phone;
             document.getElementById('editContactWhatsapp').value = contactInfo.whatsapp;
             document.getElementById('editContactEmail').value = contactInfo.email;
             document.getElementById('editContactAddress').value = contactInfo.address;
-            if (document.getElementById('editContactPasscode')) {
-                document.getElementById('editContactPasscode').value = '';
-            }
 
             document.getElementById('editContactUsModal').classList.remove('hidden');
         }
@@ -1195,11 +1228,6 @@
 
         function handleEditContactUsSubmit(e) {
             e.preventDefault();
-            const passcode = document.getElementById('editContactPasscode').value.trim();
-            if (passcode !== '2468') {
-                showToast('كلمة المرور غير صحيحة! كلمة المرور المطلوبة هي (2468)', '❌');
-                return;
-            }
 
             contactInfo = {
                 phone: document.getElementById('editContactPhone').value.trim(),
