@@ -300,6 +300,18 @@
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                        <!-- 🔐 بيانات دخول الطبيب والسكرتيرة -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-amber-500/20 mt-2">
+                            <div class="col-span-2"><p class="text-amber-400 font-black text-[11px] flex items-center gap-1"><i class="fa-solid fa-user-doctor"></i> بيانات دخول الطبيب:</p></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">ايميل الطبيب *</label><input type="email" id="tabEditDoctorEmail" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">باسورد الطبيب (6 أحرف+) *</label><input type="text" id="tabEditDoctorPass" required minlength="6" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div class="col-span-2"><p class="text-teal-300 font-black text-[11px] flex items-center gap-1"><i class="fa-solid fa-user-nurse"></i> بيانات دخول السكرتيرة:</p></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">ايميل السكرتيرة *</label><input type="email" id="tabEditSecEmail" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">باسورد السكرتيرة *</label><input type="text" id="tabEditSecPass" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
+                        </div>
+                        <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 text-[10px] text-amber-200 leading-relaxed"><i class="fa-solid fa-circle-info ml-1"></i> تغيير الايميل والباسورد من هنا سيتم حفظه في Firebase وسيعمل فوراً في صفحة الدخول لكل العيادات.</div>
                         <div class="pt-2 flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl transition text-xs">حفظ التعديلات 💾</button></div>
                     </form>
                 </div>
@@ -1091,9 +1103,38 @@
             e.preventDefault();
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c || !currentUser) return;
-            const u = { ...c, name: document.getElementById('tabEditClinicName').value.trim(), doctorName: document.getElementById('tabEditDoctorName').value.trim(), doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), price: Number(document.getElementById('tabEditClinicPrice').value), consultPrice: Number(document.getElementById('tabEditConsultPrice').value), schedule: document.getElementById('tabEditClinicSchedule').value.trim(), address: document.getElementById('tabEditClinicAddress').value.trim() };
-            try { await setDoc(getPublicDoc('clinics', c.id), u); renderClinicDashboard(); renderClinicCards(); window.showToast('تم تحديث بيانات العيادة! 💾', '✨'); }
-            catch (err) { console.error(err); window.showToast('❌ فشل التحديث!', '❌'); }
+            const btn = e.target.querySelector('button[type="submit"]');
+            if(btn) { btn.disabled=true; btn.textContent='جاري الحفظ...'; }
+            const updated = { 
+                ...c, 
+                name: document.getElementById('tabEditClinicName').value.trim(), 
+                doctorName: document.getElementById('tabEditDoctorName').value.trim(), 
+                doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), 
+                price: Number(document.getElementById('tabEditClinicPrice').value), 
+                consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
+                schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
+                address: document.getElementById('tabEditClinicAddress').value.trim(),
+                doctorEmail: document.getElementById('tabEditDoctorEmail').value.trim().toLowerCase(),
+                doctorPass: document.getElementById('tabEditDoctorPass').value.trim(),
+                secEmail: document.getElementById('tabEditSecEmail').value.trim().toLowerCase(),
+                secPass: document.getElementById('tabEditSecPass').value.trim()
+            };
+            // validation
+            if(updated.doctorPass.length < 6){ window.showToast('باسورد الدكتور لازم 6 أحرف على الأقل ❌','❌'); if(btn){btn.disabled=false; btn.textContent='حفظ التعديلات 💾';} return; }
+            if(updated.secPass.length < 3){ window.showToast('باسورد السكرتيرة قصير ❌','❌'); if(btn){btn.disabled=false; btn.textContent='حفظ التعديلات 💾';} return; }
+            try {
+                await setDoc(getPublicDoc('clinics', updated.id), updated);
+                window.showToast('تم تحديث بيانات العيادة وبيانات الدخول ✅');
+                // تحديث القائمة المحلية
+                const idx = clinicsList.findIndex(x=>x.id==updated.id);
+                if(idx>-1) clinicsList[idx]=updated;
+                renderClinicCards();
+            } catch(err){
+                console.error(err);
+                window.showToast('❌ فشل الحفظ: '+(err.message||''), '❌');
+            } finally {
+                if(btn){ btn.disabled=false; btn.textContent='حفظ التعديلات 💾'; }
+            }
         };
 
         function renderClinicDashboard() {
