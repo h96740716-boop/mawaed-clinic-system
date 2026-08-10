@@ -3,579 +3,2379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مواعيد - منظومة حجز وإدارة العيادات الطبية المباشرة</title>
+    <title>مواعيد - منظومة حجز وإدارة العيادات الطبية</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Cairo Font -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
-            theme: { extend: { fontFamily: { cairo: ['Cairo', 'sans-serif'] }, colors: { brand: { 50:'#f0fdfa',100:'#ccfbf1',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a',950:'#042f2e' } } } }
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
         }
     </script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 4px; }
+        body { font-family: 'Cairo', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .glass-nav { backdrop-filter: blur(12px); background-color: rgba(15, 23, 42, 0.85); }
         @media print {
             body * { visibility: hidden; }
-            #printablePrescriptionArea, #printablePrescriptionArea * { visibility: visible; }
-            #printablePrescriptionArea { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
+            #printableTicket, #printableTicket * { visibility: visible; }
+            #printableTicket { position: absolute; left: 0; top: 0; width: 100%; }
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col custom-scrollbar">
-    <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700/60 sticky top-0 z-40">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-amber-400 selection:text-slate-900">
+
+    <!-- HEADER NAVBAR -->
+    <header class="sticky top-0 z-40 glass-nav border-b border-slate-800 text-white shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3 cursor-pointer" onclick="showView('patientLanding')">
-                <div class="w-11 h-11 bg-gradient-to-tr from-teal-600 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20">
-                    <i class="fa-solid fa-stethoscope text-slate-950 text-xl font-bold"></i>
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="openContactModal()" title="انقر للتواصل مع إدارة المنظومة والدعم الفني">
+                <div class="w-12 h-12 bg-gradient-to-tr from-teal-500 to-amber-400 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20 group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-hospital text-slate-950 text-2xl font-black"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black tracking-tight text-white flex items-center gap-2">
-                        <span>مَواعِيد</span>
-                        <span class="text-[10px] bg-teal-500/20 text-teal-300 font-semibold px-2 py-0.5 rounded-full border border-teal-500/30">الربط السحابي المباشر</span>
+                    <h1 class="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+                        <span>مواعيد</span>
+                        <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-md uppercase">الذكي</span>
                     </h1>
-                    <p class="text-xs text-slate-400">منظومة الحجز وإدارة العيادات اللحظية</p>
+                    <p class="text-[11px] text-teal-300 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-headset text-amber-400"></i>
+                        <span id="headerSysSubtitle">منظومة العيادات - اضغط للاتصال بنا</span>
+                    </p>
                 </div>
             </div>
+
+            <!-- Header Action Buttons -->
             <div class="flex items-center gap-2 sm:gap-3">
-                <div id="firebaseStatusBadge" class="hidden items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold border">
-                    <span id="firebaseStatusDot" class="w-2 h-2 rounded-full inline-block"></span>
-                    <span id="firebaseStatusText"></span>
-                </div>
-                <button onclick="openTicketSearchModal()" class="bg-gradient-to-r from-teal-600/30 to-emerald-600/30 hover:from-teal-600/50 hover:to-emerald-600/50 text-teal-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-teal-500/40">
-                    <i class="fa-solid fa-mobile-screen-button text-amber-400 text-sm animate-pulse"></i>
-                    <span>تتبع دورك من البيت</span>
+                <a href="#bookingSection" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-calendar-plus text-amber-400"></i>
+                    <span class="hidden md:inline">حجز كشف</span>
+                </a>
+
+                <button onclick="openClinicLoginModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs px-3 sm:px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md hover:shadow-teal-600/30">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>لوحة العيادة والانتظار</span>
                 </button>
-                <button onclick="openContactUsModal()" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-teal-500/30">
-                    <i class="fa-solid fa-headset text-teal-400"></i>
-                    <span class="hidden sm:inline">اتصل بنا</span>
+
+                <button id="editClinicHeaderBtn" onclick="openDoctorSettingsModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-3 sm:px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md hover:shadow-amber-500/30">
+                    <i class="fa-solid fa-gear"></i>
+                    <span class="hidden sm:inline">تعديل العيادة والجدول</span>
                 </button>
-                <div id="navClinicLoggedIn" class="hidden flex items-center gap-2">
-                    <button onclick="showView('clinicDashboard')" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-gauge"></i>
-                        <span class="hidden md:inline">لوحة التحكم</span>
-                    </button>
-                    <button onclick="logoutClinic()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 px-3 py-2 rounded-xl text-xs font-bold transition border border-rose-500/30">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
-                <div id="navClinicLoggedOut">
-                    <button onclick="openClinicLoginModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-user-doctor"></i>
-                        <span class="hidden sm:inline">دخول العيادات والانتظار</span>
-                    </button>
-                </div>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <section id="viewPatientLanding" class="space-y-8">
-            <div class="bg-gradient-to-r from-slate-800 via-teal-950/40 to-slate-800 p-6 sm:p-10 rounded-3xl border border-teal-500/20 shadow-2xl">
-                <div class="relative z-10 max-w-2xl space-y-4">
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-extrabold">
-                        <i class="fa-solid fa-bolt text-amber-400 text-xs animate-bounce"></i>
-                        مربوط بـ Firebase - تصل الحجوزات فورياً للعيادة
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight">احجز موعد كشفك وتتبع دورك مباشرة من بيتك</h2>
-                    <p class="text-slate-300 text-sm leading-relaxed">اختر العيادة، احجز كشفك، وتابع دورك المباشر في الانتظار من موبايلك!</p>
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- HERO BANNER -->
+        <section class="relative bg-slate-900 text-white rounded-3xl p-6 sm:p-10 overflow-hidden shadow-2xl border border-slate-800">
+            <div class="absolute -right-20 -top-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="relative z-10 max-w-3xl space-y-4">
+                <span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-xs px-3 py-1 rounded-full font-bold inline-flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-teal-400 animate-ping"></span>
+                    <span>خدمة العيادات الطبية - 10 تخصصات متكاملة</span>
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-black leading-tight text-white">
+                    احجز كشفك الطبي بسهولة وتابع طابور الانتظار من بيتك
+                </h2>
+                <p class="text-slate-300 text-xs sm:text-base leading-relaxed">
+                    منظومة مواعيد توفر لك إمكانية حجز الكشف الطبي أونلاين، متابعة دورك بالعيادة لحظة بلحظة بشكل حي من المنزل لتوفير الوقت، وتتبع موقع العيادة بالخرائط مباشرة.
+                </p>
+                <div class="pt-2 flex flex-wrap gap-3">
+                    <a href="#bookingSection" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl text-xs sm:text-sm shadow-lg transition flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>استعراض العيادات والحجز</span>
+                    </a>
+                    <a href="#searchSection" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold px-6 py-3 rounded-2xl text-xs sm:text-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-teal-400"></i>
+                        <span>متابعة وحالة الحجز</span>
+                    </a>
                 </div>
-            </div>
-            <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
-                    <div>
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-hospital-user text-teal-400"></i><span>العيادات والتخصصات المتاحة</span></h3>
-                        <p class="text-xs text-slate-400 mt-1">احجز كشفك الآن واعرف مواعيد ومواقع جميع العيادات</p>
-                    </div>
-                    <div class="w-full sm:w-auto">
-                        <div class="relative w-full sm:w-64">
-                            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" id="clinicSearchInput" onkeyup="filterClinicsCards()" placeholder="ابحث باسم العيادة أو الطبيب..." class="w-full pr-10 pl-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-teal-500">
-                        </div>
-                    </div>
-                </div>
-                <div id="clinicsCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
         </section>
 
-        <section id="viewClinicDashboard" class="hidden space-y-6">
-            <div class="bg-slate-800/90 p-6 rounded-3xl border border-slate-700/80 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- SEARCH / INQUIRY SECTION -->
+        <section id="searchSection" class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80 space-y-6">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-100 pb-5">
+                <div>
+                    <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-receipt text-amber-500"></i>
+                        <span>متابعة حالة الطلب واستفسارات المرضى</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">أدخل رقم هاتفك أو الكود المرجعي للاستعلام عن الكشف أو عرض رد السكرتيرة</p>
+                </div>
+                <!-- Inquiry Trigger Button -->
+                <button onclick="openInquiryModal()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2 self-start md:self-auto">
+                    <i class="fa-solid fa-circle-question text-teal-600 text-sm"></i>
+                    <span>إرسال استفسار مباشر لعيادة</span>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-grow">
+                    <i class="fa-solid fa-phone-volume absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchKeyword" placeholder="أدخل رقم المحمول المستخدم بالحجز (أو كود الحجز M-XXXXX)..." class="w-full pr-11 pl-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">
+                </div>
+                <button onclick="searchRequestStatus()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold px-6 py-3 rounded-2xl text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-md">
+                    <i class="fa-solid fa-magnifying-glass text-amber-400"></i>
+                    <span>بحث واستعلام</span>
+                </button>
+            </div>
+
+            <!-- Search Result Container -->
+            <div id="searchResultDisplay" class="hidden space-y-4 pt-2"></div>
+        </section>
+
+        <!-- CLINICS DIRECTORY & BOOKING SECTION -->
+        <section id="bookingSection" class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-r-4 border-teal-600 pr-4">
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900">دليل العيادات والجدول الطبي</h3>
+                    <p class="text-xs text-slate-500">اختر العيادة المناسبة لمراجعة الجدول والمواعيد، تتبع الموقع، وحجز كشف أونلاين</p>
+                </div>
+                <span class="bg-slate-200 text-slate-700 text-xs font-bold px-3 py-1 rounded-full">10 عيادات متاحة</span>
+            </div>
+
+            <!-- Clinics Grid -->
+            <div id="clinicsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </section>
+
+        <!-- CLINIC MANAGEMENT DASHBOARD SECTION -->
+        <section id="clinicDashboardPanel" class="hidden bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-8">
+            <!-- Panel Header -->
+            <div class="flex flex-col lg:flex-row justify-between lg:items-center gap-4 border-b border-slate-800 pb-6">
                 <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 bg-teal-500/20 text-teal-400 rounded-2xl border border-teal-500/30 flex items-center justify-center text-2xl font-black"><i class="fa-solid fa-user-doctor"></i></div>
+                    <div id="dashClinicAvatar" class="w-16 h-16 rounded-2xl bg-teal-600/30 border border-teal-500/40 flex items-center justify-center text-teal-300 font-bold text-2xl overflow-hidden">
+                        🏥
+                    </div>
                     <div>
-                        <div class="flex items-center gap-3">
-                            <h2 id="dashClinicName" class="text-xl font-black text-white">عيادة</h2>
-                            <span id="dashRoleBadge" class="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">طبيب</span>
+                        <div class="flex items-center gap-2">
+                            <span id="dashClinicRoleBadge" class="bg-amber-400 text-slate-950 font-black text-[10px] px-2.5 py-0.5 rounded-full uppercase">لوحة التحكم</span>
+                            <span id="dashClinicSpecialty" class="text-xs text-teal-400 font-bold">--</span>
                         </div>
-                        <p id="dashDoctorName" class="text-xs text-teal-300 mt-1 font-bold"></p>
+                        <h3 id="dashClinicTitle" class="text-2xl font-black text-white mt-1">--</h3>
+                        <p id="dashDoctorName" class="text-xs text-slate-400">الطبيب المعالج: --</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button onclick="switchSubTab('settings')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs px-4 py-2.5 rounded-xl font-bold transition flex items-center gap-2"><i class="fa-solid fa-sliders"></i><span>تعديل العيادة والجدول</span></button>
-                    <button onclick="logoutClinic()" class="bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs px-4 py-2.5 rounded-xl font-bold transition border border-rose-500/30">تسجيل خروج</button>
+
+                <!-- Panel Top Quick Actions -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button id="dashEditClinicBtn" onclick="openDoctorSettingsModal()" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>تعديل العيادة والجدول</span>
+                    </button>
+                    <button onclick="lockSystem()" class="bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>قفل النظام والخروج</span>
+                    </button>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800 custom-scrollbar">
-                <button onclick="switchSubTab('pending')" id="tabBtnPending" class="subtab-btn bg-teal-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-clock"></i><span>الطلبات المعلقة</span><span id="badgePendingCount" class="bg-slate-900 text-teal-300 px-2 py-0.5 rounded-full text-[10px]">0</span></button>
-                <button onclick="switchSubTab('queue')" id="tabBtnQueue" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-users-line"></i><span>شاشة الانتظار ونطق الدور</span></button>
-                <button onclick="switchSubTab('approved')" id="tabBtnApproved" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-circle-check"></i><span>سجل الحجوزات المعتمدة</span></button>
-                <button onclick="switchSubTab('inquiries')" id="tabBtnInquiries" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-comments"></i><span>الاستفسارات</span><span id="badgeInquiriesCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span></button>
-                <button id="tabBtnPrescription" onclick="switchSubTab('prescription')" class="subtab-btn bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-prescription-bottle-medical"></i><span>الروشتة الطبية (Rx)</span></button>
-                <button id="tabBtnPatientRecords" onclick="switchSubTab('patientRecords')" class="subtab-btn bg-teal-800 text-teal-200 border border-teal-600/60 font-extrabold px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-folder-open text-amber-400"></i><span>سجل المرضى</span><span id="badgeRecordsCount" class="bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-extrabold">0</span></button>
-                <button onclick="switchSubTab('finance')" id="tabBtnFinance" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-file-invoice-dollar"></i><span>الإيرادات والمصروفات</span></button>
-                <button onclick="switchSubTab('settings')" id="tabBtnSettings" class="subtab-btn bg-slate-800 text-amber-300 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-amber-500/30"><i class="fa-solid fa-sliders"></i><span>تعديل العيادة والجدول</span></button>
+            <!-- Sub Tabs Navigation Header -->
+            <div class="flex items-center gap-2 border-b border-slate-800 overflow-x-auto pb-2 scrollbar-none text-xs font-bold">
+                <button onclick="switchSubTab('pending')" id="tabBtnPending" class="subtab-btn bg-teal-600 text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-clock"></i>
+                    <span>📋 الطلبات المعلقة</span>
+                    <span id="badgePendingCount" class="bg-slate-950 text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-extrabold">0</span>
+                </button>
+
+                <button onclick="switchSubTab('queue')" id="tabBtnQueue" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-desktop"></i>
+                    <span>📺 شاشة ومتابعة الانتظار</span>
+                </button>
+
+                <button onclick="switchSubTab('approved')" id="tabBtnApproved" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                    <span>✅ سجل الحجوزات المعتمدة</span>
+                </button>
+
+                <button onclick="switchSubTab('inquiries')" id="tabBtnInquiries" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-comments"></i>
+                    <span>💬 استفسارات المرضى</span>
+                    <span id="badgeInquiryCount" class="bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-extrabold">0</span>
+                </button>
+
+                <!-- PRESCRIPTION TAB - Strictly Doctor Only -->
+                <button id="tabBtnPrescription" onclick="switchSubTab('prescription')" class="subtab-btn hidden bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-prescription-bottle-medical"></i>
+                    <span>💊 الفحص والروشتة الطبية (Rx)</span>
+                </button>
+
+                <button onclick="switchSubTab('finance')" id="tabBtnFinance" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>💰 الإيرادات والمصروفات</span>
+                </button>
             </div>
 
+            <!-- TAB 1: PENDING REQUESTS -->
             <div id="subTabPending" class="subtab-content space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-list-check"></i><span>طلبات الكشف المعلقة (مربوطة سحابياً)</span></h4>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <input type="date" id="filterPendingDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 rounded-xl text-xs px-3 py-1.5 text-white">
-                            <button onclick="clearPendingDateFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-xl font-bold">عرض الكل</button>
-                        </div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-amber-400"></i>
+                        <span class="text-xs font-bold text-slate-200">تصفية والبحث في الطلبات المعلقة:</span>
                     </div>
-                    <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
-                        <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
-                            <tbody id="pendingBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
-                        </table>
+                    <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                        <input type="date" id="pendingFilterDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 text-white text-xs px-3 py-2 rounded-xl focus:outline-none focus:ring-1 focus:ring-amber-400">
+                        <button onclick="setPendingFilterToday()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-2 rounded-xl font-bold">اليوم</button>
+                        <button onclick="setPendingFilterTomorrow()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-3 py-2 rounded-xl font-bold">الغد</button>
+                        <button onclick="clearPendingFilterDate()" class="bg-slate-900 hover:bg-slate-800 text-slate-400 text-xs px-3 py-2 rounded-xl font-bold">عرض الكل</button>
                     </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-800">
+                    <table class="w-full text-right text-xs text-slate-300">
+                        <thead class="bg-slate-800 text-slate-400 font-bold uppercase border-b border-slate-700">
+                            <tr>
+                                <th class="p-3.5">اسم المريض</th>
+                                <th class="p-3.5">الهاتف</th>
+                                <th class="p-3.5">تاريخ الحجز</th>
+                                <th class="p-3.5">نوع الكشف</th>
+                                <th class="p-3.5">طريقة الدفع</th>
+                                <th class="p-3.5">الكود المرجعي</th>
+                                <th class="p-3.5 text-center">الإجراء والاعتماد</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingRequestsTbody" class="divide-y divide-slate-800 bg-slate-900/50">
+                            <!-- JS Generated -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
+            <!-- TAB 2: LIVE QUEUE CONTROL & MONITOR -->
             <div id="subTabQueue" class="subtab-content hidden space-y-6">
-                <div class="bg-gradient-to-r from-slate-800 via-teal-950/30 to-slate-800 p-6 rounded-3xl border border-teal-500/40 shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="space-y-2 text-center md:text-right">
-                        <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-extrabold">شاشة التحكم بالدور الصوتي</span>
-                        <h3 class="text-2xl font-black text-white">إدارة وترتيب الدور الحالي بالعيادة</h3>
-                        <p class="text-xs text-slate-300" id="queueTodayDate"></p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 text-center space-y-2">
+                        <span class="text-xs text-slate-400 font-bold block">المريض بالداخل الآن 🚪</span>
+                        <div id="queueCurrentInsideNum" class="text-4xl font-black text-amber-400">#--</div>
+                        <div id="queueCurrentInsideName" class="text-xs font-bold text-slate-200 truncate">لا يوجد مريض بالداخل حالياً</div>
                     </div>
-                    <div class="flex items-center gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
-                        <div class="text-center px-4">
-                            <span class="text-[10px] text-teal-400 font-bold block">رقم الدور الحالي</span>
-                            <span id="activeQueueDisplay" class="text-4xl font-black text-amber-400 font-mono">#1</span>
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <button onclick="advanceQueueTurn(1)" class="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black px-5 py-2.5 rounded-xl text-xs transition shadow-lg flex items-center gap-2"><i class="fa-solid fa-bullhorn"></i><span>الدور التالي (نطق صوتي)</span></button>
-                            <div class="flex gap-2">
-                                <button onclick="advanceQueueTurn(-1)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg text-xs font-bold">السابق</button>
-                                <button onclick="repeatCurrentAudio()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-lg text-xs font-bold">إعادة النداء</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-users-line"></i><span>قائمة مرضى الانتظار اليومي</span></h4>
-                    <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
-                        <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">رقم الدور</th><th class="p-3">اسم المريض</th><th class="p-3">الهاتف</th><th class="p-3">نوع الكشف</th><th class="p-3">الحالة</th><th class="p-3 text-center">إجراء</th></tr></thead>
-                            <tbody id="todayQueueTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
-            <div id="subTabApproved" class="subtab-content hidden space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <h4 class="text-sm font-bold text-teal-300">سجل كافة الحجوزات المؤكدة والمعتمدة</h4>
-                    <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
-                        <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">رقم الدور</th><th class="p-3">حالة الكشف</th></tr></thead>
-                            <tbody id="approvedBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
-                        </table>
+                    <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 text-center space-y-2">
+                        <span class="text-xs text-slate-400 font-bold block">المريض التالي ⌛</span>
+                        <div id="queueNextInLineNum" class="text-4xl font-black text-teal-300">#--</div>
+                        <div id="queueNextInLineName" class="text-xs font-bold text-slate-200 truncate">--</div>
+                    </div>
+
+                    <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 flex flex-col justify-center items-center gap-2">
+                        <button onclick="callNextPatientInQueue()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs sm:text-sm transition shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-base"></i>
+                            <span>استدعاء المريض التالي 📢</span>
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div id="subTabInquiries" class="subtab-content hidden space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2 border-b border-slate-700 pb-3"><i class="fa-solid fa-comments text-amber-400"></i><span>استفسارات المرضى الواردة (تصل فوراً)</span></h4>
-                    <div id="inquiriesContainer" class="space-y-3"></div>
-                </div>
-            </div>
-
-            <div id="subTabPrescription" class="subtab-content hidden space-y-6">
-                <div class="bg-slate-800/90 p-6 rounded-2xl border border-amber-500/30 space-y-5">
-                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                        <h4 class="text-base font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-file-prescription text-lg"></i><span>مُحرر الروشتة والفحص الطبي (Rx)</span></h4>
-                        <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-3 py-1 rounded-full font-bold">خاص بالدكتور فقط</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">اسم المريض بالكامل *</label><input type="text" id="rxPatientName" placeholder="أدخل اسم المريض..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                        <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">التشخيص الطبي</label><input type="text" id="rxDiagnosis" placeholder="مثال: التهاب الشعب الهوائية..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                    </div>
-                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
-                        <p class="text-xs font-bold text-amber-300">إضافة علاج / دواء للروشتة:</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <input type="text" id="rxDrugName" placeholder="اسم الدواء" class="p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white">
-                            <input type="text" id="rxDrugDose" placeholder="الجرعة" class="p-2 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white">
-                            <button onclick="addDrugToRx()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2 rounded-lg text-xs transition">+ إدراج بالروشتة</button>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <p class="text-xs font-bold text-slate-300">الأدوية المدرجة:</p>
-                        <div id="rxDrugsContainer" class="space-y-2"><p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية حتى الآن.</p></div>
-                    </div>
-                    <div class="pt-2 flex justify-end">
-                        <button onclick="printCurrentPrescription()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-2.5 rounded-xl text-xs transition flex items-center gap-2"><i class="fa-solid fa-floppy-disk"></i><span>حفظ الروشتة 💾</span></button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="subTabPatientRecords" class="subtab-content hidden space-y-6">
-                <div class="bg-slate-800/90 p-5 rounded-2xl border border-teal-500/30 space-y-4">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-700 pb-3">
-                        <h4 class="text-base font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-folder-open text-lg"></i><span>سجل كشوفات مرضى العيادة</span></h4>
-                        <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] px-3 py-1 rounded-full font-bold">محجوب عن السكرتارية</span>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <div class="relative flex-grow"><i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i><input type="text" id="recSearchInput" onkeyup="renderPatientRecordsTable()" placeholder="ابحث باسم المريض أو التشخيص..." class="w-full pr-10 pl-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                        <button onclick="clearRecordSearch()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-4 py-2.5 rounded-xl font-bold whitespace-nowrap">عرض الكل</button>
-                    </div>
+                <div class="space-y-3">
+                    <h4 class="font-bold text-sm text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol"></i>
+                        <span>قائمة الانتظار الحية لليوم بالعيادة:</span>
+                    </h4>
                     <div class="overflow-x-auto rounded-2xl border border-slate-800">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-amber-400 font-bold border-b border-slate-700"><tr><th class="p-3.5">تاريخ الفحص</th><th class="p-3.5">اسم المريض</th><th class="p-3.5">التشخيص</th><th class="p-3.5">الأدوية (Rx)</th><th class="p-3.5 text-center">إجراء</th></tr></thead>
-                            <tbody id="patientRecordsTbody" class="divide-y divide-slate-800 bg-slate-900/50"></tbody>
+                            <thead class="bg-slate-800 text-slate-400 font-bold border-b border-slate-700">
+                                <tr>
+                                    <th class="p-3">رقم الدور</th>
+                                    <th class="p-3">اسم المريض</th>
+                                    <th class="p-3">نوع الكشف</th>
+                                    <th class="p-3">الحالة الحالية</th>
+                                    <th class="p-3 text-center">الإجراء والتعديل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todayQueueTbody" class="divide-y divide-slate-800 bg-slate-900/50">
+                                <!-- JS Generated -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <div id="subTabFinance" class="subtab-content hidden space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><p class="text-xs text-slate-400">إجمالي إيرادات الكشوفات</p><p id="finTotalRevenue" class="text-2xl font-black text-emerald-400 mt-1">0 ج.م</p></div>
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><p class="text-xs text-slate-400">إجمالي المصروفات</p><p id="finTotalExpenses" class="text-2xl font-black text-rose-400 mt-1">0 ج.م</p></div>
-                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700"><p class="text-xs text-slate-400">صافي الأرباح</p><p id="finNetProfit" class="text-2xl font-black text-teal-300 mt-1">0 ج.م</p></div>
+            <!-- TAB 3: APPROVED BOOKINGS HISTORY -->
+            <div id="subTabApproved" class="subtab-content hidden space-y-4">
+                <div class="overflow-x-auto rounded-2xl border border-slate-800">
+                    <table class="w-full text-right text-xs text-slate-300">
+                        <thead class="bg-slate-800 text-slate-400 font-bold border-b border-slate-700">
+                            <tr>
+                                <th class="p-3.5">رقم الدور</th>
+                                <th class="p-3.5">اسم المريض</th>
+                                <th class="p-3.5">رقم الهاتف</th>
+                                <th class="p-3.5">تاريخ الكشف</th>
+                                <th class="p-3.5">طريقة الدفع</th>
+                                <th class="p-3.5">الحالة</th>
+                                <th class="p-3.5 text-center">الخيارات والتذكرة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvedBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/50">
+                            <!-- JS Generated -->
+                        </tbody>
+                    </table>
                 </div>
-                <div class="bg-slate-800/90 p-5 rounded-2xl border border-slate-700 space-y-4">
-                    <h4 class="text-sm font-bold text-rose-400 flex items-center gap-2 border-b border-slate-700 pb-3"><i class="fa-solid fa-receipt"></i><span>تسجيل مصروف جديد</span></h4>
-                    <form onsubmit="handleAddExpenseSubmit(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                        <div><label class="text-slate-300 font-bold block mb-1">بيان المصروف *</label><input type="text" id="expTitle" required placeholder="مثال: أدوات طبية / إيجار..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-rose-400"></div>
-                        <div><label class="text-slate-300 font-bold block mb-1">المبلغ (ج.م) *</label><input type="number" min="1" id="expAmount" required placeholder="500" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-rose-400"></div>
-                        <div class="flex items-end"><button type="submit" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-xl transition text-xs flex items-center justify-center gap-2"><i class="fa-solid fa-plus"></i><span>إضافة المصروف</span></button></div>
-                    </form>
-                    <div class="pt-2">
-                        <h5 class="text-xs font-bold text-slate-300 mb-2">سجل المصروفات:</h5>
-                        <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
-                            <table class="w-full text-right text-xs text-slate-300">
-                                <thead class="bg-slate-900 text-rose-300 font-bold border-b border-slate-700"><tr><th class="p-3">التاريخ</th><th class="p-3">البيان</th><th class="p-3">المبلغ</th><th class="p-3 text-center">إجراء</th></tr></thead>
-                                <tbody id="expensesTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
-                            </table>
+            </div>
+
+            <!-- TAB 4: CLINIC INQUIRIES FROM PATIENTS -->
+            <div id="subTabInquiries" class="subtab-content hidden space-y-4">
+                <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 text-xs text-slate-300 flex items-center justify-between">
+                    <span>استفسارات وأسئلة المرضى الموجهة لعيادتكم:</span>
+                    <span class="text-slate-400">الرد يصل فوراً للمريض عند البحث</span>
+                </div>
+                <div id="inquiriesListContainer" class="space-y-3">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+
+            <!-- TAB 5: PRESCRIPTION (Rx) - DOCTOR ONLY -->
+            <div id="subTabPrescription" class="subtab-content hidden space-y-6">
+                <div class="bg-slate-800/90 p-6 rounded-2xl border border-amber-500/30 space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                        <h4 class="text-base font-black text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-file-prescription text-lg"></i>
+                            <span>محرر الروشتة الطبية الإلكترونية (Rx)</span>
+                        </h4>
+                        <span id="rxPatientTag" class="bg-slate-900 border border-amber-500/40 text-amber-300 text-xs px-3 py-1 rounded-full font-bold">لم يتم اختيار مريض</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">اسم المريض المعالج:</label>
+                            <input type="text" id="rxPatientName" placeholder="أدخل اسم المريض..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400">
                         </div>
+                        <div>
+                            <label class="block font-bold text-slate-300 mb-1">التشخيص الطبي / الملاحظات:</label>
+                            <input type="text" id="rxDiagnosis" placeholder="التشخيص المبدئي..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400">
+                        </div>
+                    </div>
+
+                    <!-- Add Drug Bar -->
+                    <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 space-y-3">
+                        <span class="font-bold text-xs text-teal-300 block">إضافة دواء للروشتة:</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <input type="text" id="rxDrugName" placeholder="اسم العلاج / العقار..." class="bg-slate-800 border border-slate-700 rounded-xl p-2 text-white">
+                            <input type="text" id="rxDrugDose" placeholder="الجرعة (مثال: قرص كل 8 ساعات)" class="bg-slate-800 border border-slate-700 rounded-xl p-2 text-white">
+                            <button onclick="addRxDrugRow()" class="bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 rounded-xl transition">
+                                <i class="fa-solid fa-plus"></i> إضافة الدواء
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Added Drugs List -->
+                    <div class="space-y-2">
+                        <span class="text-xs font-bold text-slate-400">أدوية الروشتة الحالية:</span>
+                        <div id="rxDrugsList" class="space-y-1.5 text-xs">
+                            <p class="text-slate-500 italic text-center py-2">لم يتم إضافة أدوية للروشتة حتى الآن.</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex justify-end">
+                        <button onclick="printCurrentPrescription()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-2.5 rounded-xl text-xs transition flex items-center gap-2 shadow-lg">
+                            <i class="fa-solid fa-print"></i>
+                            <span>معاينة وطباعة الروشتة (Rx)</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div id="subTabSettings" class="subtab-content hidden space-y-6">
-                <div class="bg-slate-800/90 p-6 rounded-2xl border border-amber-500/40 space-y-5 shadow-xl">
-                    <div class="border-b border-slate-700 pb-3">
-                        <h4 class="text-base font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-sliders text-lg"></i><span>تعديل بيانات العيادة والجدول</span></h4>
-                        <p class="text-xs text-slate-400 mt-1">تحديث معلومات العيادة، مواعيد العمل، الأسعار، والعنوان</p>
+            <!-- TAB 6: FINANCE & REVENUE TRACKER -->
+            <div id="subTabFinance" class="subtab-content hidden space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400 font-bold block">إجمالي إيراد الكشوفات</span>
+                        <div id="finTotalRevenue" class="text-2xl font-black text-emerald-400 mt-1">0 ج.م</div>
                     </div>
-                    <form onsubmit="handleEditClinicSubmit(event)" class="space-y-4 text-xs">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label class="text-slate-300 font-bold block mb-1">اسم العيادة *</label><input type="text" id="tabEditClinicName" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">اسم الطبيب *</label><input type="text" id="tabEditDoctorName" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        </div>
-                        <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        </div>
-                        <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        <div class="pt-2 flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl transition text-xs">حفظ التعديلات 💾</button></div>
-                    </form>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400 font-bold block">إجمالي المصروفات</span>
+                        <div id="finTotalExpenses" class="text-2xl font-black text-rose-400 mt-1">0 ج.م</div>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                        <span class="text-xs text-slate-400 font-bold block">صافي أرباح اليوم</span>
+                        <div id="finNetProfit" class="text-2xl font-black text-amber-400 mt-1">0 ج.م</div>
+                    </div>
                 </div>
 
-                <div class="bg-slate-800/90 p-6 rounded-2xl border border-rose-500/30 space-y-5 shadow-xl">
-                    <div class="border-b border-slate-700 pb-3">
-                        <h4 class="text-base font-black text-rose-400 flex items-center gap-2"><i class="fa-solid fa-lock text-lg"></i><span>تغيير بيانات الدخول</span></h4>
-                        <p class="text-xs text-slate-400 mt-1">تغيير البريد الإلكتروني أو كلمة المرور لحسابك</p>
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 space-y-4">
+                    <h4 class="text-xs font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-minus-circle text-rose-400"></i>
+                        <span>تسجيل بند مصروفات جديد بالعيادة:</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <input type="text" id="expTitle" placeholder="بيان المصروفات (مثال: مستلزمات طبية)" class="bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <input type="number" id="expAmount" placeholder="المبلغ بالجنية" class="bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-white">
+                        <button onclick="addClinicExpense()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl py-2.5 transition">
+                            تسجيل المصروفات
+                        </button>
                     </div>
-                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
-                        <span class="text-slate-400 font-bold">📧 البريد الحالي:</span>
-                        <span id="currentEmailDisplay" class="font-mono text-teal-300">---</span>
-                    </div>
-                    <form onsubmit="handleChangeEmail(event)" class="space-y-3 text-xs">
-                        <p class="text-slate-300 font-bold text-xs">🔄 تغيير البريد الإلكتروني</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div><label class="text-slate-300 font-bold block mb-1">البريد الجديد</label><input type="email" id="newEmailInput" required placeholder="new@example.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الحالية (للتأكيد)</label><input type="password" id="currentPassForEmail" required placeholder="كلمة مرورك الحالية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
-                        </div>
-                        <div class="flex justify-end"><button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs">تغيير البريد 📧</button></div>
-                    </form>
-                    <div class="border-t border-slate-700 pt-1"></div>
-                    <form onsubmit="handleChangePassword(event)" class="space-y-3 text-xs">
-                        <p class="text-slate-300 font-bold text-xs">🔑 تغيير كلمة المرور</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الحالية</label><input type="password" id="currentPassInput" required placeholder="كلمة مرورك الحالية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">كلمة المرور الجديدة (6 أحرف+)</label><input type="password" id="newPassInput" required minlength="6" placeholder="كلمة مرور جديدة قوية" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-rose-400"></div>
-                        </div>
-                        <div class="flex justify-end"><button type="submit" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-5 py-2.5 rounded-xl transition text-xs">تغيير كلمة المرور 🔑</button></div>
-                    </form>
                 </div>
             </div>
         </section>
+
     </main>
 
-    <div id="bookingModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-lg rounded-3xl border border-teal-500/30 p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-            <button onclick="closeBookingModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            <div class="border-b border-slate-700 pb-3">
-                <h3 id="modalClinicTitle" class="text-lg font-black text-white">حجز كشف طبي</h3>
-                <p id="modalDoctorSub" class="text-xs text-teal-400 mt-0.5"></p>
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 text-xs py-8 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white font-black">م</div>
+                <span class="font-extrabold text-slate-200">منظومة مواعيد لحجز وإدارة العيادات الطبية</span>
             </div>
-            <form id="bookingForm" onsubmit="handleBookingSubmit(event)" class="space-y-4">
-                <input type="hidden" id="bookingClinicId">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">اسم المريض بالكامل *</label><input type="text" id="bookPatientName" required placeholder="أدخل اسمك كما في الهوية..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
+            <p class="text-slate-500 text-[11px]">جميع الحقوق محفوظة © 2026 - نظام إدارة العيادات وطابور الانتظار الذكي</p>
+        </div>
+    </footer>
+
+
+    <!-- MODALS SECTION -->
+
+    <!-- MODAL 1: BOOKING FORM MODAL -->
+    <div id="bookingModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeBookingModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            
+            <div class="border-b pb-4">
+                <span id="bmClinicSpecialtyBadge" class="bg-teal-100 text-teal-800 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold">--</span>
+                <h3 id="bmClinicTitle" class="text-2xl font-black text-slate-900 mt-1">حجز كشف جديد</h3>
+                <p id="bmDoctorName" class="text-xs text-slate-500">الدكتور: --</p>
+            </div>
+
+            <form onsubmit="submitPatientBooking(event)" class="space-y-4 text-xs font-semibold">
+                <div>
+                    <label class="block text-slate-700 mb-1">اسم المريض رباعياً:</label>
+                    <input type="text" id="bmPatientName" required placeholder="أدخل اسمك بالكامل..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">رقم المحمول (للمتابعة والاستعلام):</label>
+                    <input type="tel" id="bmPatientPhone" required placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">السن / العمر *</label><input type="number" id="bookPatientAge" min="1" max="120" required placeholder="35" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 font-mono"></div>
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">طريقة الدفع *</label><select id="bookPaymentMethod" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="نقداً بالعيادة (كاش)">نقداً بالعيادة (كاش)</option><option value="فودافون كاش / محفظة">فودافون كاش / محفظة</option><option value="بطاقة ائتمانية (فيزا)">بطاقة ائتمانية (فيزا)</option></select></div>
+                    <div>
+                        <label class="block text-slate-700 mb-1">تاريخ الحجز المطلوب:</label>
+                        <input type="date" id="bmBookingDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-slate-700 mb-1">نوع الحجز:</label>
+                        <select id="bmBookingType" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <option value="كشف جديد">كشف جديد</option>
+                            <option value="استشارة">إعادة / استشارة</option>
+                            <option value="مستعجل">كشف مستعجل</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">عنوان المريض *</label><input type="text" id="bookPatientAddress" required placeholder="أدخل عنوان السكن أو المحافظة..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">رقم الهاتف *</label><input type="tel" id="bookPatientPhone" required placeholder="01xxxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">تاريخ الكشف *</label><input type="date" id="bookDate" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="استشارة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">طريقة الدفع المفضل:</label>
+                    <select id="bmPaymentMethod" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500 font-bold text-slate-800">
+                        <option value="كاش بالعيادة">💵 كاش بالعيادة عند الحضور</option>
+                        <option value="تحويل إلكتروني (InstaPay / فودافون كاش)">📱 تحويل إلكتروني (InstaPay / فودافون كاش)</option>
+                    </select>
                 </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
-                    <span class="text-slate-400">قيمة رسوم الكشف:</span>
-                    <span id="bookFeeDisplay" class="font-black text-amber-400 text-sm">-- ج.م</span>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">ملاحظات أو شكوى مبدئية (اختياري):</label>
+                    <textarea id="bmNotes" rows="2" placeholder="اكتب أية أعراض أو ملاحظات..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
                 </div>
-                <div class="pt-2 flex gap-3">
-                    <button type="submit" id="bookingSubmitBtn" class="flex-grow bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">تأكيد وإرسال طلب الحجز 🚀</button>
-                    <button type="button" onclick="closeBookingModal()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold px-4 rounded-xl text-xs">إلغاء</button>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 text-amber-900 text-[11px] space-y-1">
+                    <div class="flex justify-between font-bold">
+                        <span>تكلفة الكشف بالعيادة:</span>
+                        <span id="bmClinicFee">-- ج.م</span>
+                    </div>
+                    <p class="text-[10px] text-amber-800">سيتم مراجعة الطلب بواسطة سكرتيرة العيادة وإصدار رقم الدور الحركي فور الاعتماد.</p>
                 </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white font-extrabold py-3.5 rounded-2xl text-sm transition shadow-lg">
+                    تأكيد وإرسال طلب الحجز 🚀
+                </button>
             </form>
         </div>
     </div>
 
-    <div id="toastContainer" class="fixed bottom-5 left-5 z-50 space-y-2 pointer-events-none"></div>
+    <!-- MODAL 2: CLINIC LOGIN AUTHENTICATION -->
+    <div id="clinicLoginModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-white space-y-6 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeClinicLoginModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xl font-bold">✕</button>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-amber-500 text-slate-950 rounded-2xl flex items-center justify-center mx-auto text-xl font-black">
+                    🔑
+                </div>
+                <h3 class="text-xl font-black text-white">تسجيل الدخول للوحة التحكم</h3>
+                <p class="text-xs text-slate-400">ادخل البريد الإلكتروني وكلمة المرور الخاصة بالعيادة</p>
+            </div>
 
-        const firebaseConfig = {
-                apiKey: "AIzaSyDr-Kowy00XWBCEeygokYV9s4YjF41t8ao",
-                authDomain: "mawaed-app-dca8c.firebaseapp.com",
-                projectId: "mawaed-app-dca8c",
-                storageBucket: "mawaed-app-dca8c.firebasestorage.app",
-                messagingSenderId: "982726796853",
-                appId: "1:982726796853:web:717888a4f9d0640010337c",
-                measurementId: "G-F5012BT3QS"
-            };
-        const appId = 'mawaed-clinic-app';
+            <form onsubmit="handleManualLoginSubmit(event)" class="space-y-4 text-xs pt-2 border-t border-slate-800">
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">البريد الإلكتروني:</label>
+                    <input type="email" id="loginEmailInput" required placeholder="doctor1@mawaed.com أو sec1@mawaed.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
 
-        // ✅ تم تصحيح كل الباسوردات من 111 الى 111111
-        const DEFAULT_CLINICS = [
-            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
-            { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
-            { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
-            { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
-            { id: 5, name: "عيادة الجلدية والتجميل", doctorName: "د. هبة العوضي", doctorImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555", secEmail: "sec5@mawaed.com", secPass: "sec555", price: 280, consultPrice: 100, icon: "fa-wand-magic-sparkles", schedule: "السبت والإثنين والخميس (3م - 9م)", address: "الدور الرابع - عمارة الشفاء - الميدان الرئيسي" },
-            { id: 6, name: "عيادة النساء والتوليد", doctorName: "د. رانيا طاهر", doctorImage: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666", secEmail: "sec6@mawaed.com", secPass: "sec666", price: 300, consultPrice: 150, icon: "fa-person-pregnant", schedule: "يومياً عدا الخميس والجمعة (4م - 9م)", address: "الدور الثاني - العيادات التخصصية - شارع الجمهورية" },
-            { id: 7, name: "عيادة العيون وجراحة الشبكيات", doctorName: "د. خالد عبد الرحمن", doctorImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777", secEmail: "sec7@mawaed.com", secPass: "sec777", price: 250, consultPrice: 100, icon: "fa-eye", schedule: "الأحد وثلاثاء والخميس (5م - 10م)", address: "الدور الثالث - مركز النور للبصريات" },
-            { id: 8, name: "عيادة الأنف والأذن والحنجرة", doctorName: "د. أسامة عبد الله", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888", secEmail: "sec8@mawaed.com", secPass: "sec888", price: 200, consultPrice: 80, icon: "fa-ear-listen", schedule: "يومياً (3ظ - 9م)", address: "الدور الأول - عمارة الأطباء - تقاطع النادي" },
-            { id: 9, name: "عيادة المخ والأعصاب", doctorName: "د. شريف توفيق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999", secEmail: "sec9@mawaed.com", secPass: "sec999", price: 350, consultPrice: 150, icon: "fa-brain", schedule: "السبت وثلاثاء (6م - 11م)", address: "الدور الخامس - البرج الطبي الحديث" },
-            { id: 10, name: "عيادة جراحة المسالك البولية", doctorName: "د. طارق مصطفى", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010", secEmail: "sec10@mawaed.com", secPass: "sec1000", price: 250, consultPrice: 100, icon: "fa-hospital", schedule: "الإثنين والسبت (4م - 10م)", address: "الدور الثاني - المركز الشامل - بجوار بنك مصر" }
-        ];
-        const DEFAULT_CONTACT_INFO = { phone: "19000 / 01012345678", whatsapp: "201012345678", email: "support@mawaed-health.com", address: "برج المركز الطبي - الدور الخامس - القاهرة" };
-        let clinicsList = [...DEFAULT_CLINICS];
-        let bookingsList = [], patientRecordsList = [], inquiriesList = [], expensesList = [];
-        let contactInfo = { ...DEFAULT_CONTACT_INFO };
-        let activeTurnsMap = {};
-        let loggedInClinicId = localStorage.getItem('mawaed_logged_clinic_id');
-        let currentClinicRole = localStorage.getItem('mawaed_logged_role');
-        let selectedBookingClinicId = null, currentSubTab = 'pending', currentRxDrugs = [];
-        let db, auth, currentUser = null;
-        const getPublicColl = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
-        const getPublicDoc = (col, id) => doc(db, 'artifacts', appId, 'public', 'data', col, String(id));
-        function setStatus(s) {
-            const badge = document.getElementById('firebaseStatusBadge');
-            const dot = document.getElementById('firebaseStatusDot');
-            const txt = document.getElementById('firebaseStatusText');
-            if (!badge) return;
-            badge.classList.remove('hidden'); badge.classList.add('flex');
-            const styles = {
-                connecting: ['bg-amber-500/10 border-amber-500/30 text-amber-300', 'bg-amber-400 animate-pulse', 'جاري الاتصال...'],
-                connected: ['bg-emerald-500/10 border-emerald-500/30 text-emerald-300', 'bg-emerald-400', 'متصل بالسحاب ✅'],
-                error: ['bg-rose-500/10 border-rose-500/30 text-rose-300', 'bg-rose-500', 'خطأ في الاتصال ❌']
-            };
-            const [bc, dc, tc] = styles[s] || styles.error;
-            badge.className = `flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold border ${bc}`;
-            dot.className = `w-2 h-2 rounded-full inline-block ${dc}`;
-            txt.textContent = tc;
-        }
-        async function initFirebaseSync() {
-            setStatus('connecting');
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                currentUser = auth.currentUser;
-                setStatus('connected');
-                onSnapshot(getPublicColl('clinics'), (snap) => {
-                    if (snap.empty) { DEFAULT_CLINICS.forEach(c => setDoc(getPublicDoc('clinics', c.id), c).catch(console.error)); }
-                    else { clinicsList = snap.docs.map(d => d.data()); renderClinicCards(); if (loggedInClinicId) renderClinicDashboard(); }
-                });
-                onSnapshot(getPublicColl('bookings'), (snap) => {
-                    bookingsList = snap.docs.map(d => d.data());
-                    if (loggedInClinicId) { renderPendingRequestsTable(); renderTodayQueueTable(); renderApprovedBookingsTable(); renderFinanceTab(); }
-                });
-                onSnapshot(getPublicColl('inquiries'), (snap) => {
-                    inquiriesList = snap.docs.map(d => d.data());
-                    if (loggedInClinicId) renderInquiriesList();
-                });
-                onSnapshot(getPublicColl('patient_records'), (snap) => {
-                    patientRecordsList = snap.docs.map(d => d.data());
-                    if (loggedInClinicId) renderPatientRecordsTable();
-                });
-                onSnapshot(getPublicColl('expenses'), (snap) => {
-                    expensesList = snap.docs.map(d => d.data());
-                    if (loggedInClinicId) renderFinanceTab();
-                });
-                onSnapshot(getPublicColl('contact_info'), (snap) => {
-                    if (snap.empty) setDoc(getPublicDoc('contact_info', 'main'), DEFAULT_CONTACT_INFO).catch(console.error);
-                    else { const m = snap.docs.find(d => d.id === 'main'); if (m) contactInfo = m.data(); }
-                });
-                onSnapshot(getPublicColl('active_turns'), (snap) => {
-                    activeTurnsMap = {};
-                    snap.docs.forEach(d => { activeTurnsMap[d.id] = d.data().turn; });
-                    if (loggedInClinicId) renderTodayQueueTable();
-                });
-            } catch (e) {
-                console.error(e);
-                setStatus('error');
-            }
-        }
-        window.showToast = function(msg, icon = '✅') {
-            const c = document.getElementById('toastContainer');
-            if (!c) return;
-            const t = document.createElement('div');
-            t.className = 'bg-slate-800 text-white border border-teal-500/40 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 text-xs pointer-events-auto transform transition duration-300 translate-y-2 opacity-0';
-            t.innerHTML = `<span class="text-base">${icon}</span><span>${msg}</span>`;
-            c.appendChild(t);
-            setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, 5000);
-        };
-        window.updateNavState = function() {
-            const li = document.getElementById('navClinicLoggedIn');
-            const lo = document.getElementById('navClinicLoggedOut');
-            if (loggedInClinicId) { li?.classList.remove('hidden'); lo?.classList.add('hidden'); }
-            else { li?.classList.add('hidden'); lo?.classList.remove('hidden'); }
-        };
-        window.openClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.remove('hidden');
-        window.closeClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.add('hidden');
-        window.closeClinicMapModal = () => document.getElementById('clinicMapModal').classList.add('hidden');
-        window.closeBookingModal = () => document.getElementById('bookingModal').classList.add('hidden');
-        window.openTicketSearchModal = () => document.getElementById('ticketSearchModal').classList.remove('hidden');
-        window.closeTicketSearchModal = () => document.getElementById('ticketSearchModal').classList.add('hidden');
-        window.openContactUsModal = () => { renderContactUsModal(); document.getElementById('contactUsModal').classList.remove('hidden'); };
-        window.closeContactUsModal = () => document.getElementById('contactUsModal').classList.add('hidden');
-        window.closePasscodeModal = () => document.getElementById('passcodeModal').classList.add('hidden');
-        window.closeEditContactUsModal = () => document.getElementById('editContactUsModal').classList.add('hidden');
-        window.closeInquiryModal = () => document.getElementById('inquiryModal').classList.add('hidden');
-        window.closePrintModal = () => document.getElementById('prescriptionPrintModal').classList.add('hidden');
-        function renderContactUsModal() {
-            const c = document.getElementById('contactUsDisplayArea');
-            if (!c) return;
-            c.innerHTML = `<div class="p-3 bg-slate-900 border rounded-xl">الهاتف: ${contactInfo.phone}</div>`;
-        }
-        window.openClinicMapModal = function(clinicId) {
-            const c = clinicsList.find(x => Number(x.id) === Number(clinicId));
-            if (!c) return;
-            document.getElementById('mapClinicName').innerText = c.name;
-            document.getElementById('mapDoctorName').innerText = c.doctorName;
-            document.getElementById('mapFullAddress').innerText = c.address;
-            document.getElementById('mapSchedule').innerText = c.schedule;
-            document.getElementById('googleMapsBtn').href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name + ' ' + c.address)}`;
-            document.getElementById('clinicMapModal').classList.remove('hidden');
-        };
-        window.handleClinicLogin = async function(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-            const pass = document.getElementById('loginPassword').value.trim();
-            try {
-                const cred = await signInWithEmailAndPassword(auth, email, pass);
-                const uid = cred.user.uid;
-                currentUser = cred.user;
-                const roleRef = doc(db, 'artifacts', appId, 'roles', uid);
-                const roleSnap = await getDoc(roleRef);
-                if (!roleSnap.exists()) throw new Error('لا يوجد صلاحية');
-                const { role, clinicId } = roleSnap.data();
-                loggedInClinicId = clinicId;
-                currentClinicRole = role;
-                localStorage.setItem('mawaed_logged_clinic_id', String(clinicId));
-                localStorage.setItem('mawaed_logged_role', role);
-                window.closeClinicLoginModal();
-                window.updateNavState();
-                window.showView('clinicDashboard');
-                window.showToast('تم الدخول بنجاح ✅');
-            } catch (err) {
-                window.showToast('خطأ في الايميل او الباسورد ❌', '❌');
-            }
-        };
-        window.logoutClinic = async function() {
-            try { await signOut(auth); } catch(e){}
-            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e){}
-            loggedInClinicId = null; currentClinicRole = null;
-            localStorage.removeItem('mawaed_logged_clinic_id');
-            localStorage.removeItem('mawaed_logged_role');
-            window.updateNavState(); window.showView('patientLanding');
-        };
-        window.showView = function(v) {
-            document.getElementById('viewPatientLanding').classList.add('hidden');
-            document.getElementById('viewClinicDashboard').classList.add('hidden');
-            if (v === 'patientLanding') { document.getElementById('viewPatientLanding').classList.remove('hidden'); renderClinicCards(); }
-            else if (v === 'clinicDashboard') { if (!loggedInClinicId) { window.openClinicLoginModal(); return; } document.getElementById('viewClinicDashboard').classList.remove('hidden'); renderClinicDashboard(); }
-        };
-        window.filterClinicsCards = function() {
-            const q = document.getElementById('clinicSearchInput').value.trim().toLowerCase();
-            document.querySelectorAll('#clinicsCardsContainer > div').forEach(c => c.classList.toggle('hidden', !c.innerText.toLowerCase().includes(q)));
-        };
-        function renderClinicCards() {
-            const container = document.getElementById('clinicsCardsContainer');
-            if (!container) return;
-            container.innerHTML = clinicsList.map(c => {
-                const img = c.doctorImage || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200';
-                return `<div class="bg-slate-800/90 rounded-2xl border p-5 space-y-4 flex flex-col justify-between">
-                    <div><h4 class="font-bold text-white">${c.name}</h4><p class="text-xs text-teal-300">${c.doctorName}</p><p class="text-xs text-slate-400">${c.price} ج.م</p></div>
-                    <div class="grid grid-cols-3 gap-1">
-                        <button onclick="openClinicMapModal(${c.id})" class="bg-slate-700 text-xs py-2 rounded-xl">الموقع</button>
-                        <button onclick="openInquiryModal(${c.id})" class="bg-amber-500/10 text-amber-300 text-xs py-2 rounded-xl">استفسار</button>
-                        <button onclick="openBookingModal(${c.id})" class="bg-teal-600 text-white text-xs py-2 rounded-xl">حجز</button>
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">كلمة المرور:</label>
+                    <input type="password" id="loginPassInput" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow-lg text-xs">
+                    دخول اللوحة 🚀
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: DOCTOR SETTINGS MODAL -->
+    <div id="doctorSettingsModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl text-white space-y-6 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeDoctorSettingsModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xl font-bold">✕</button>
+
+            <!-- Auth Step -->
+            <div id="dsAuthStep" class="space-y-4">
+                <div class="text-center space-y-1">
+                    <span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] px-3 py-0.5 rounded-full font-extrabold">🔒 صلاحيات الطبيب المعالج فقط</span>
+                    <h3 class="text-xl font-black text-white mt-2">تسجيل دخول الطبيب لتعديل العيادة</h3>
+                    <p class="text-xs text-slate-400">يرجى كتابة البريد الإلكتروني وكلمة المرور الخاصة بالطبيب المعالج للتحقق</p>
+                </div>
+
+                <form onsubmit="verifyDoctorForSettings(event)" class="space-y-4 text-xs">
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">بريد الطبيب الإلكتروني:</label>
+                        <input type="email" id="dsDoctorEmailInput" required placeholder="doctor1@mawaed.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
                     </div>
-                </div>`;
-            }).join('');
+
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">كلمة مرور الطبيب:</label>
+                        <input type="password" id="dsDoctorPassInput" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow-lg text-xs">
+                        التحقق وفتح إعدادات العيادة ⚙️
+                    </button>
+                </form>
+            </div>
+
+            <!-- Form Step -->
+            <div id="dsFormStep" class="hidden space-y-6">
+                <div class="border-b border-slate-800 pb-4">
+                    <h3 id="dsClinicNameHeader" class="text-xl font-black text-amber-400">تعديل بيانات العيادة والجدول</h3>
+                    <p class="text-xs text-slate-400">يمكنك تعديل المواعيد، الأسعار، صورة الطبيب، وموقع العيادة للخرائط</p>
+                </div>
+
+                <form onsubmit="saveClinicSettings(event)" class="space-y-4 text-xs font-semibold">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-300 mb-1">اسم العيادة:</label>
+                            <input type="text" id="editClinicName" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 mb-1">اسم الطبيب المعالج:</label>
+                            <input type="text" id="editDoctorName" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-300 mb-1">سعر الكشف (جنية):</label>
+                            <input type="number" id="editFee" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 mb-1">أيام وساعات العمل:</label>
+                            <input type="text" id="editWorkHours" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 mb-1">عنوان وموقع العيادة التفصيلي (لخرائط جوجل):</label>
+                        <input type="text" id="editLocation" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-sky-400">
+                    </div>
+
+                    <!-- PHOTO UPLOAD -->
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-3">
+                        <label class="block font-bold text-amber-400">صورة الطبيب / العيادة:</label>
+                        <div class="flex items-center gap-4">
+                            <div id="editDoctorPhotoPreview" class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-2xl overflow-hidden flex-shrink-0">
+                                👨‍⚕️
+                            </div>
+                            <div class="flex-grow space-y-2">
+                                <input type="file" id="editDoctorPhotoFile" accept="image/*" onchange="handleDoctorPhotoUpload(event)" class="text-[11px] text-slate-400">
+                                <input type="text" id="editDoctorPhotoUrl" placeholder="أو أدخل رابط صورة مباشر (URL)..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white text-[11px]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CREDENTIALS SECTION -->
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-3">
+                        <label class="block font-bold text-amber-400">إعدادات الحسابات والأمان:</label>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-slate-300 text-[11px] mb-1">بريد الطبيب:</label>
+                                <input type="email" id="editDoctorEmail" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-[11px] mb-1">كلمة سر الطبيب:</label>
+                                <input type="text" id="editDoctorPass" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-700">
+                            <div>
+                                <label class="block text-slate-300 text-[11px] mb-1">بريد السكرتيرة:</label>
+                                <input type="email" id="editSecEmail" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white">
+                            </div>
+                            <div>
+                                <label class="block text-slate-300 text-[11px] mb-1">كلمة سر السكرتيرة:</label>
+                                <input type="text" id="editSecPass" required class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-2xl transition text-xs shadow-lg">
+                        حفظ التغيرات والجدول ✅
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: PATIENT INQUIRY MODAL -->
+    <div id="inquiryModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5 relative">
+            <button onclick="closeInquiryModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+
+            <div class="border-b pb-3">
+                <h3 class="text-xl font-black text-slate-900">إرسال استفسار مباشر لعيادة</h3>
+                <p class="text-xs text-slate-500">سيصل سؤالك لسكرتيرة العيادة مباشرة ولن يظهر للعامة إلا عند رد العيادة عليك</p>
+            </div>
+
+            <form onsubmit="submitPatientInquiry(event)" class="space-y-4 text-xs font-semibold">
+                <div>
+                    <label class="block text-slate-700 mb-1">اختر العيادة المطلوبة:</label>
+                    <select id="inquiryClinicSelect" required class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                        <!-- JS Generated -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">اسمك بالكامل:</label>
+                    <input type="text" id="inquiryPatientName" required placeholder="أدخل اسمك..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">رقم الهاتف (لمتابعة الرد):</label>
+                    <input type="tel" id="inquiryPatientPhone" required placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">نص الاستفسار أو السؤال:</label>
+                    <textarea id="inquiryQuestion" required rows="3" placeholder="اكتب سؤالك هنا..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-2xl transition shadow-lg">
+                    إرسال الاستفسار للسكرتيرة 📤
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 5: CANCELLATION REASON MODAL -->
+    <div id="cancellationReasonModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeCancellationReasonModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+
+            <div class="border-b pb-2">
+                <h3 class="text-lg font-black text-rose-700">تحديد سبب اعتذار/إلغاء الحجز</h3>
+                <p class="text-xs text-slate-500">سيظهر هذا السبب للمريض عند استعلامه عن الطلب</p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 font-bold mb-1">اختر أو اكتب السبب:</label>
+                    <div class="space-y-1.5 mb-2">
+                        <button onclick="setCancelReason('العيادة مغلقة اليوم')" class="w-full text-right bg-slate-100 hover:bg-rose-50 hover:text-rose-800 p-2 rounded-xl transition font-semibold">🚫 العيادة مغلقة اليوم</button>
+                        <button onclick="setCancelReason('اكتفاء عدد الكشوفات المتاحة اليوم')" class="w-full text-right bg-slate-100 hover:bg-rose-50 hover:text-rose-800 p-2 rounded-xl transition font-semibold">🛑 اكتفاء عدد الكشوفات اليوم</button>
+                        <button onclick="setCancelReason('تعذر التواصل مع المريض لتأكيد الحجز')" class="w-full text-right bg-slate-100 hover:bg-rose-50 hover:text-rose-800 p-2 rounded-xl transition font-semibold">📞 تعذر التواصل مع المريض</button>
+                    </div>
+                    <textarea id="customCancelReason" rows="2" placeholder="أو اكتب سبباً مخصصاً..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
+                </div>
+
+                <button onclick="confirmBookingRejectionWithReason()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-3 rounded-xl transition">
+                    تأكيد إرسال سبب الإلغاء للمريض
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: PATIENT LIVE QUEUE MONITOR MODAL -->
+    <div id="patientQueueModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closePatientLiveQueueModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+            
+            <div class="text-center space-y-1 border-b pb-4">
+                <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] px-3 py-1 rounded-full font-bold inline-flex items-center gap-1.5 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>متابعة طابور العيادة المباشرة من البيت 🔴</span>
+                </span>
+                <h3 id="pqModalClinicTitle" class="text-xl font-black text-slate-900">--</h3>
+                <p id="pqModalDoctorName" class="text-xs text-slate-500">الدكتور: --</p>
+            </div>
+
+            <!-- Live Cards -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-teal-50 border-2 border-teal-500/40 p-4 rounded-2xl text-center space-y-1">
+                    <span class="text-[10px] font-bold text-teal-700 block">المريض بالداخل الآن 🚪</span>
+                    <div id="pqCurrentInsideNum" class="text-3xl font-black text-teal-900">#--</div>
+                    <div id="pqCurrentInsideName" class="text-xs font-bold text-slate-700 truncate">لا يوجد مريض بالداخل</div>
+                </div>
+
+                <div class="bg-amber-50 border-2 border-amber-500/40 p-4 rounded-2xl text-center space-y-1">
+                    <span class="text-[10px] font-bold text-amber-800 block">المريض التالي ⌛</span>
+                    <div id="pqNextInLineNum" class="text-3xl font-black text-amber-950">#--</div>
+                    <div id="pqNextInLineName" class="text-xs font-bold text-slate-700 truncate">--</div>
+                </div>
+            </div>
+
+            <!-- Live List -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-ol text-teal-600"></i>
+                        <span>قائمة أدوار الانتظار الحية بالعيادة اليوم:</span>
+                    </h4>
+                    <span class="text-[10px] text-slate-400">تحديث تلقائي</span>
+                </div>
+                <div id="pqLiveQueueListContainer" class="space-y-1.5 max-h-48 overflow-y-auto text-xs">
+                    <!-- JS Live queue -->
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px] text-slate-500 flex items-center gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-500 text-sm flex-shrink-0"></i>
+                <span>تسمح لك هذه الشاشة بالبقاء في منزلك والانطلاق للعيادة عند إقتراب دورك لتوفير وقت الانتظار.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: APPROVE BOOKING QUEUE NUMBER MODAL -->
+    <div id="approveBookingModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeApproveModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+
+            <div class="border-b pb-2">
+                <span class="bg-teal-100 text-teal-800 text-[10px] px-2.5 py-0.5 rounded-full font-black">اعتماد كشف طبي</span>
+                <h3 class="text-lg font-black text-slate-900 mt-1">تأكيد قبول الحجز وإصدار الدور</h3>
+                <p id="appModalPatientInfo" class="text-xs text-slate-500 font-bold mt-0.5">المريض: --</p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 font-bold mb-1">رقم الدور بالعيادة:</label>
+                    <input type="number" id="appModalQueueNumInput" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-black text-amber-600 text-xl focus:outline-none focus:ring-2 focus:ring-teal-500">
+                    <p class="text-[10px] text-slate-400 mt-1">تمت اقتراح الرقم التسلسلي التالي تلقائياً. يمكنك تأكيده أو تعديله يدويًا.</p>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="confirmApproveBookingSubmit()" class="flex-grow bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-xl transition shadow-lg text-xs">
+                        تأكيد الاعتماد ورقم الدور 🚀
+                    </button>
+                    <button onclick="closeApproveModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition text-xs">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 8: EDIT QUEUE NUMBER MODAL -->
+    <div id="editQueueNumberModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 relative">
+            <button onclick="closeEditQueueModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 font-bold">✕</button>
+
+            <div class="border-b pb-2">
+                <h3 class="text-lg font-black text-amber-600">تعديل رقم دور المريض</h3>
+                <p id="editQueueModalPatientInfo" class="text-xs text-slate-500 mt-1">المريض: --</p>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-700 font-bold mb-1">رقم الدور الجديد:</label>
+                    <input type="number" id="editQueueModalNumInput" min="1" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 font-black text-amber-600 text-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="confirmEditQueueNumberSubmit()" class="flex-grow bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow">
+                        حفظ رقم الدور الجديد ✅
+                    </button>
+                    <button onclick="closeEditQueueModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-3 rounded-xl transition">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 9: CONTACT US MODAL -->
+    <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeContactModal()" class="absolute top-5 left-5 text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+
+            <div class="text-center space-y-2 border-b pb-4 relative">
+                <button onclick="openSystemSettingsModal()" class="absolute right-0 top-0 bg-amber-100 hover:bg-amber-200 text-amber-900 font-black text-[11px] px-3 py-1.5 rounded-xl transition flex items-center gap-1 shadow-sm" title="تعديل أرقام وبيانات الدعم">
+                    <i class="fa-solid fa-gear text-amber-600"></i>
+                    <span>تعديل المنظومة</span>
+                </button>
+                <div class="w-14 h-14 bg-gradient-to-tr from-teal-500 to-amber-400 rounded-2xl flex items-center justify-center mx-auto shadow-lg text-slate-950 font-black text-2xl">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900">تواصل مع منظومة مواعيد</h3>
+                <p id="contactModalSubtitle" class="text-xs text-slate-500 font-semibold">نحن هنا لمساعدتك على مدار الساعة في الاستفسارات والدعم الفني</p>
+            </div>
+
+            <!-- Contact Info Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-bold">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-normal">الخط الساخن والدعم</span>
+                        <a id="contactHotlineLink" href="tel:19999" class="text-slate-900 hover:text-teal-600 dir-ltr inline-block font-extrabold text-sm"><span id="contactHotlineText">19999</span></a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-normal">خدمة العملاء واتساب</span>
+                        <a id="contactWhatsappLink" href="https://wa.me/201000000000" target="_blank" class="text-slate-900 hover:text-emerald-600 dir-ltr inline-block font-extrabold text-sm"><span id="contactWhatsappText">+20 100 000 0000</span></a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-envelope"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-normal">البريد الإلكتروني</span>
+                        <a id="contactEmailLink" href="mailto:support@mawaed.com" class="text-slate-900 hover:text-amber-600 font-extrabold text-xs"><span id="contactEmailText">support@mawaed.com</span></a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-normal">ساعات العمل</span>
+                        <span id="contactWorkHoursText" class="text-slate-900 font-extrabold text-xs">طوال أيام الأسبوع 24/7</span>
+                    </div>
+                </div>
+            </div>
+
+            <form onsubmit="submitContactForm(event)" class="space-y-3 text-xs font-semibold pt-2 border-t border-slate-100">
+                <h4 class="font-black text-slate-800 text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane text-teal-600"></i>
+                    <span>إرسال رسالة مباشرة للدعم الفني:</span>
+                </h4>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">الاسم بالكامل:</label>
+                    <input type="text" id="contactName" required placeholder="أدخل اسمك..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">رقم الهاتف:</label>
+                    <input type="tel" id="contactPhone" required placeholder="01xxxxxxxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-700 mb-1">نص الرسالة:</label>
+                    <textarea id="contactMessage" required rows="2" placeholder="اكتب استفسارك للدعم..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-2xl transition shadow-lg">
+                    إرسال الرسالة للدعم الفني 🚀
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 10: SYSTEM INFO EDIT MODAL -->
+    <div id="systemSettingsModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl text-white space-y-5 relative">
+            <button onclick="closeSystemSettingsModal()" class="absolute top-5 left-5 text-slate-400 hover:text-white text-xl font-bold">✕</button>
+
+            <div class="border-b border-slate-800 pb-3">
+                <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-2.5 py-0.5 rounded-full font-black">⚙️ إعدادات المنظومة</span>
+                <h3 class="text-xl font-black text-white mt-1">تعديل بيانات منظومة مواعيد</h3>
+                <p class="text-xs text-slate-400">تعديل أرقام الدعم الفني، الخط الساخن، وساعات العمل للمنظومة</p>
+            </div>
+
+            <!-- AUTH STEP -->
+            <div id="sysAuthStep" class="space-y-4">
+                <div class="text-center space-y-1">
+                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-3 py-0.5 rounded-full font-extrabold">🔒 صلاحيات مدير المنظومة فقط</span>
+                    <p class="text-xs text-slate-400 pt-1">ادخل كلمة مرور إدارة المنظومة للوصول إلى خيارات التعديل</p>
+                </div>
+
+                <form onsubmit="verifySystemPassword(event)" class="space-y-3.5 text-xs font-semibold">
+                    <div>
+                        <label class="block text-slate-300 mb-1">كلمة مرور مدير المنظومة:</label>
+                        <input type="password" id="sysAdminPassInput" required placeholder="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow-lg text-xs">
+                        التحقق وفتح إعدادات المنظومة ⚙️
+                    </button>
+                </form>
+            </div>
+
+            <!-- FORM STEP -->
+            <form id="sysFormStep" onsubmit="saveSystemInfoSettings(event)" class="hidden space-y-3.5 text-xs font-semibold">
+                <div>
+                    <label class="block text-slate-300 mb-1">الخط الساخن:</label>
+                    <input type="text" id="sysEditHotline" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">رقم الواتساب للدعم:</label>
+                    <input type="text" id="sysEditWhatsapp" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">البريد الإلكتروني للدعم:</label>
+                    <input type="email" id="sysEditEmail" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">ساعات وأيام العمل:</label>
+                    <input type="text" id="sysEditWorkHours" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">وصف/شعار المنظومة الفرعي:</label>
+                    <input type="text" id="sysEditSubtitle" required class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl transition shadow-lg text-xs mt-2">
+                    حفظ بيانات المنظومة الجديدة ✅
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastNotification" class="hidden fixed bottom-5 left-5 right-5 sm:right-auto sm:max-w-md z-50 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-teal-500/50 flex flex-col gap-2 transition-all transform duration-300">
+        <div class="flex items-center gap-3">
+            <span id="toastIcon" class="text-xl">✅</span>
+            <span id="toastText" class="text-xs font-extrabold flex-grow leading-relaxed"></span>
+        </div>
+        <div id="toastActionContainer" class="hidden pt-2 border-t border-slate-800"></div>
+    </div>
+
+    <!-- PRINTABLE TICKET ELEMENT -->
+    <div id="printableTicket" class="hidden p-8 text-slate-900 space-y-6">
+        <div class="text-center border-b pb-4">
+            <h2 class="text-2xl font-black">تذكرة حجز كشف طبي - منظومة مواعيد</h2>
+            <p class="text-sm text-slate-600 mt-1" id="prClinicTitle">--</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4 text-sm font-semibold">
+            <div>اسم المريض: <span id="prPatientName" class="font-bold">--</span></div>
+            <div>الكود المرجعي: <span id="prRefCode" class="font-bold">--</span></div>
+            <div>تاريخ الحجز: <span id="prBookingDate" class="font-bold">--</span></div>
+            <div>رقم الدور بالعيادة: <span id="prQueueNum" class="font-bold text-amber-600 text-xl">--</span></div>
+            <div>طريقة الدفع: <span id="prPaymentMethod" class="font-bold">--</span></div>
+            <div>تكلفة الكشف: <span id="prClinicFee" class="font-bold">--</span></div>
+        </div>
+        <div class="border-t pt-4 text-center text-xs text-slate-500">
+            يرجى الاحتفاظ بتذكرة الحجز وإبرازها لسكرتيرة العيادة فور الحضور.
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* STORAGE HELPERS - DEFINED AT TOP OF SCRIPT SCOPE */
+        function getStorage(key, defaultVal) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultVal;
+            } catch (e) {
+                console.error('Error reading localStorage for key:', key, e);
+                return defaultVal;
+            }
         }
-        window.openInquiryModal = function(id){ document.getElementById('inquiryClinicId').value=id; document.getElementById('inquiryModal').classList.remove('hidden'); };
-        window.handleInquirySubmit = async function(e){ e.preventDefault(); const n={ id: Date.now(), clinicId: Number(document.getElementById('inquiryClinicId').value), patientName: document.getElementById('inquiryPatientName').value, phone: document.getElementById('inquiryPatientPhone').value, message: document.getElementById('inquiryMessage').value, status:'pending', date: new Date().toISOString().split('T')[0]}; await setDoc(getPublicDoc('inquiries', n.id), n); window.closeInquiryModal(); window.showToast('تم ارسال الاستفسار'); };
-        function renderInquiriesList(){}
-        window.openBookingModal = function(cid){ selectedBookingClinicId=cid; const c=clinicsList.find(x=>x.id===cid); document.getElementById('bookingClinicId').value=c.id; document.getElementById('modalClinicTitle').innerText=c.name; document.getElementById('bookingModal').classList.remove('hidden'); };
-        window.handleBookingSubmit = async function(e){ e.preventDefault(); const refCode="MW-"+Math.floor(10000+Math.random()*90000); const nb={ id: Date.now(), refCode, clinicId: Number(document.getElementById('bookingClinicId').value), patientName: document.getElementById('bookPatientName').value, phone: document.getElementById('bookPatientPhone').value, date: document.getElementById('bookDate').value, type: document.getElementById('bookType').value, fee: "250", status:'pending'}; await setDoc(getPublicDoc('bookings', nb.id), nb); window.closeBookingModal(); window.showToast('تم الحجز: '+refCode); };
-        function populateSettingsTab(){ const c=clinicsList.find(x=>x.id==loggedInClinicId); if(!c) return; document.getElementById('tabEditClinicName').value=c.name; document.getElementById('tabEditDoctorName').value=c.doctorName; document.getElementById('currentEmailDisplay').innerText=auth?.currentUser?.email||''; }
-        window.handleChangeEmail = async function(e){ e.preventDefault(); const newEmail=document.getElementById('newEmailInput').value; const curPass=document.getElementById('currentPassForEmail').value; const cred=EmailAuthProvider.credential(auth.currentUser.email, curPass); await reauthenticateWithCredential(auth.currentUser, cred); await updateEmail(auth.currentUser, newEmail); window.showToast('تم تغيير الايميل'); };
-        window.handleChangePassword = async function(e){ e.preventDefault(); const cur=document.getElementById('currentPassInput').value; const nw=document.getElementById('newPassInput').value; const cred=EmailAuthProvider.credential(auth.currentUser.email, cur); await reauthenticateWithCredential(auth.currentUser, cred); await updatePassword(auth.currentUser, nw); window.showToast('تم تغيير الباسورد'); };
-        window.handleEditClinicSubmit = async function(e){ e.preventDefault(); };
-        function renderClinicDashboard(){ if(!loggedInClinicId) return; const c=clinicsList.find(x=>x.id==loggedInClinicId); document.getElementById('dashClinicName').innerText=c.name; document.getElementById('dashDoctorName').innerText=c.doctorName; populateSettingsTab(); window.switchSubTab('pending'); }
-        window.switchSubTab = function(k){ document.querySelectorAll('.subtab-content').forEach(el=>el.classList.add('hidden')); document.getElementById('subTab'+k.charAt(0).toUpperCase()+k.slice(1))?.classList.remove('hidden'); };
-        function renderPendingRequestsTable(){}
-        function renderTodayQueueTable(){}
-        function renderApprovedBookingsTable(){}
-        function renderFinanceTab(){}
-        window.onload = function(){ window.updateNavState(); renderClinicCards(); initFirebaseSync(); };
+
+        function setStorage(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error('Error setting localStorage for key:', key, e);
+            }
+        }
+
+        function getTodayISO() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /* SAFE DOM HELPERS */
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        }
+
+        function safeSetHTML(id, html) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        }
+
+        function getInputValue(id) {
+            const el = document.getElementById(id);
+            return el ? el.value : '';
+        }
+
+        function setInputValue(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        }
+
+        /* DEFAULT SYSTEM INFO & CLINICS */
+        const DEFAULT_SYSTEM_INFO = {
+            hotline: "19999",
+            whatsapp: "+20 100 000 0000",
+            email: "support@mawaed.com",
+            workHours: "طوال أيام الأسبوع 24/7",
+            subtitle: "منظومة العيادات - اضغط للاتصال بنا"
+        };
+
+        const DEFAULT_CLINICS = [
+            { id: 1, title: "عيادة الباطنة والقلب", specialty: "باطنة وقلب", doctor: "د. علي حسن", fee: 300, workHours: "السبت - الخميس (4 م - 10 م)", location: "القاهرة - ش الطيران - برج الأطباء", photo: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111
+", secEmail: "sec1@mawaed.com", secPass: "sec111" },
+            { id: 2, title: "عيادة الأطفال وحديثي الولادة", specialty: "أطفال ونمو", doctor: "د. سارة محمود", fee: 250, workHours: "يومياً عدا الجمعة (2 م - 8 م)", location: "الجيزة - الدقي - شارع مصدق", photo: "https://images.unsplash.com/photo-1594824813566-88855ce75907?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222
+", secEmail: "sec2@mawaed.com", secPass: "sec222" },
+            { id: 3, title: "عيادة العظام والجراحة", specialty: "عظام ومفاصل", doctor: "د. محمد فاروق", fee: 350, workHours: "الأحد - الأربعاء (5 م - 11 م)", location: "الإسكندرية - سموحة - ش الفردوس", photo: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333
+", secEmail: "sec3@mawaed.com", secPass: "sec333" },
+            { id: 4, title: "عيادة الأسنان وتجميل الفم", specialty: "أسنان وتجميل", doctor: "د. أحمد سامي", fee: 200, workHours: "السبت - الخميس (1 ظ - 9 م)", location: "المنصورة - ش المشاية السفلى", photo: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444
+", secEmail: "sec4@mawaed.com", secPass: "sec444" },
+            { id: 5, title: "عيادة الجلدية والتجميل", specialty: "جلدية وليزر", doctor: "د. هبة العوضي", fee: 300, workHours: "يومياً (3 عصراً - 9 مساءً)", location: "طنطا - ش النادي الرئيسي", photo: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555
+", secEmail: "sec5@mawaed.com", secPass: "sec555" },
+            { id: 6, title: "عيادة النساء والتوليد", specialty: "نساء وتوليد", doctor: "د. رانيا طاهر", fee: 350, workHours: "السبت والأثنين والأربعاء (4 م - 10 م)", location: "الزقازيق - القومية - الموقف الجديد", photo: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666
+", secEmail: "sec6@mawaed.com", secPass: "sec666" },
+            { id: 7, title: "عيادة العيون وجراحة الشبكيات", specialty: "عيون وتصحيح نظر", doctor: "د. خالد عبد الرحمن", fee: 280, workHours: "الأحد إلى الخميس (3 م - 9 م)", location: "أسيوط - ش الجمهورية", photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777
+", secEmail: "sec7@mawaed.com", secPass: "sec777" },
+            { id: 8, title: "عيادة الأنف والأذن والحنجرة", specialty: "أنف وأذن وحنجرة", doctor: "د. أسامة عبد الله", fee: 250, workHours: "السبت - الأربعاء (5 م - 10 م)", location: "بنها - ش المحطة - برج الصفا", photo: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888
+", secEmail: "sec8@mawaed.com", secPass: "sec888" },
+            { id: 9, title: "عيادة المخ والأعصاب", specialty: "مخ وأعصاب", doctor: "د. شريف توفيق", fee: 400, workHours: "الأحد والأربعاء (6 م - 11 م)", location: "الإسماعيلية - ش السلطان حسين", photo: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999
+", secEmail: "sec9@mawaed.com", secPass: "sec999" },
+            { id: 10, title: "عيادة جراحة المسالك البولية", specialty: "مسالك بولية", doctor: "د. طارق مصطفى", fee: 300, workHours: "يومياً عدا الجمعة (4 م - 9 م)", location: "الفيوم - ش البحر - برج الأطباء", photo: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010
+", secEmail: "sec10@mawaed.com", secPass: "sec1000" }
+        ];
+
+        /* DEMO INITIAL BOOKINGS FOR INSTANT TESTING */
+        const DEFAULT_SEED_BOOKINGS = [
+            { id: 1001, clinicId: 1, patientName: "أحمد محمود السيد", patientPhone: "01012345678", date: getTodayISO(), type: "كشف جديد", paymentMethod: "كاش بالعيادة", notes: "استشارة بشأن الصدر", refCode: "M-58291", status: "PENDING", queueNum: 0, queueStatus: "WAITING" },
+            { id: 1002, clinicId: 1, patientName: "مريم عبد الله", patientPhone: "01198765432", date: getTodayISO(), type: "استشارة", paymentMethod: "تحويل إلكتروني (InstaPay / فودافون كاش)", notes: "متابعة الضغط", refCode: "M-39402", status: "PENDING", queueNum: 0, queueStatus: "WAITING" }
+        ];
+
+        /* GLOBAL STATE VARIABLES */
+        let systemInfo = getStorage('mawaed_system_info_v2', DEFAULT_SYSTEM_INFO);
+        let clinicsList = getStorage('mawaed_clinics_v2', DEFAULT_CLINICS);
+        let bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+        let inquiriesList = getStorage('mawaed_inquiries_v2', []);
+        let expensesList = getStorage('mawaed_expenses_v2', []);
+
+        let currentClinicRole = null; // 'doctor' | 'secretary'
+        let loggedInClinicId = null;  // Clinic ID currently active in dashboard
+        let selectedBookingClinicId = null; // Clinic ID currently selected in patient booking modal
+        let currentSubTab = 'pending';
+        let pendingFilterDate = '';
+        let currentCancelBookingId = null;
+        let currentApproveBookingId = null;
+        let currentEditQueueBookingId = null;
+        let currentRxDrugs = [];
+
+        /* MODAL VISIBILITY HANDLERS */
+        function openClinicLoginModal() {
+            const modal = document.getElementById('clinicLoginModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeClinicLoginModal() {
+            const modal = document.getElementById('clinicLoginModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        /* UTILITY & RENDER FUNCTIONS */
+        function showToast(msg, icon = '✅', actionBtnHtml = '') {
+            const toast = document.getElementById('toastNotification');
+            const actionContainer = document.getElementById('toastActionContainer');
+            safeSetText('toastText', msg);
+            safeSetText('toastIcon', icon);
+
+            if (actionContainer) {
+                if (actionBtnHtml) {
+                    actionContainer.innerHTML = actionBtnHtml;
+                    actionContainer.classList.remove('hidden');
+                } else {
+                    actionContainer.innerHTML = '';
+                    actionContainer.classList.add('hidden');
+                }
+            }
+
+            if (toast) {
+                toast.classList.remove('hidden');
+                setTimeout(() => toast.classList.add('hidden'), 7000);
+            }
+        }
+
+        function autoExpireOutdatedBookings() {
+            const today = getTodayISO();
+            let changed = false;
+            bookingsList.forEach(b => {
+                if (b.status === 'PENDING' && b.date < today) {
+                    b.status = 'EXPIRED';
+                    b.expireReason = 'انقضى التاريخ المحدد دون تأكيد من العيادة';
+                    changed = true;
+                }
+            });
+            if (changed) setStorage('mawaed_bookings_v2', bookingsList);
+        }
+
+        function renderClinicsGrid() {
+            const container = document.getElementById('clinicsGrid');
+            if (!container) return;
+
+            let html = '';
+            clinicsList.forEach(c => {
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.location)}`;
+                html += `
+                <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-4">
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-4">
+                            <img src="${c.photo}" alt="${c.doctor}" onerror="this.src='https://placehold.co/100x100/1e293b/amber?text=👨‍⚕️'" class="w-16 h-16 rounded-2xl object-cover border-2 border-amber-400 shadow-md">
+                            <div>
+                                <span class="bg-teal-100 text-teal-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full">${c.specialty}</span>
+                                <h4 class="text-lg font-black text-slate-900 mt-1">${c.title}</h4>
+                                <p class="text-xs font-bold text-teal-700">${c.doctor}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-clock text-amber-500 w-4"></i>
+                                <span>${c.workHours}</span>
+                            </div>
+                            <a href="${mapsUrl}" target="_blank" class="flex items-center gap-2 hover:text-blue-600 transition group" title="انقر للفتح على الخريطة">
+                                <i class="fa-solid fa-location-dot text-rose-500 w-4 group-hover:scale-125 transition-transform"></i>
+                                <span class="truncate underline decoration-rose-300 decoration-dotted">${c.location}</span>
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-tag text-emerald-500 w-4"></i>
+                                <span class="font-bold text-slate-900">سعر الكشف: ${c.fee} جنية</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="openBookingModal(${c.id})" class="bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow">
+                                <i class="fa-solid fa-calendar-plus"></i>
+                                <span>حجز كشف</span>
+                            </button>
+                            <button onclick="openPatientLiveQueueModal(${c.id})" class="bg-slate-800 hover:bg-slate-900 text-amber-400 font-extrabold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5 border border-slate-700">
+                                <i class="fa-solid fa-desktop"></i>
+                                <span>📺 الطابور</span>
+                            </button>
+                        </div>
+                        <a href="${mapsUrl}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-md hover:shadow-blue-600/30">
+                            <i class="fa-solid fa-map-location-dot text-amber-300 text-sm"></i>
+                            <span>🗺️ خرائط وتتبع موقع العيادة</span>
+                        </a>
+                    </div>
+                </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        /* SEARCH REQUEST STATUS FOR PATIENTS */
+        function searchRequestStatus() {
+            const keyword = getInputValue('searchKeyword').trim().toLowerCase();
+            const container = document.getElementById('searchResultDisplay');
+            if (!container) return;
+
+            if (!keyword) {
+                showToast('يرجى كتابة رقم الهاتف أو الكود المرجعي للبحث.', '⚠️');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            inquiriesList = getStorage('mawaed_inquiries_v2', []);
+
+            const matchedBookings = bookingsList.filter(b => 
+                b.patientPhone.toLowerCase().includes(keyword) || 
+                b.refCode.toLowerCase().includes(keyword)
+            );
+
+            const matchedInquiries = inquiriesList.filter(i => 
+                i.patientPhone.toLowerCase().includes(keyword) && i.reply !== ''
+            );
+
+            if (matchedBookings.length === 0 && matchedInquiries.length === 0) {
+                container.innerHTML = `
+                <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl text-center space-y-2 text-amber-900 text-xs">
+                    <p class="font-bold">لم يتم العثور على حجز أو رد استفسار للبيانات المدخلة: "${keyword}"</p>
+                    <p class="text-[11px] text-amber-700">تأكد من إدخال رقم المحمول المستخدم بالحجز بدقة أو الكود المرجعي الممنوح لك (مثال: M-12345).</p>
+                </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // Render Bookings Result
+            matchedBookings.forEach(b => {
+                const clinic = clinicsList.find(c => c.id === b.clinicId) || {};
+                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(clinic.location || '')}`;
+
+                if (b.status === 'PENDING') {
+                    html += `
+                    <div class="bg-amber-50 border border-amber-300 p-5 rounded-2xl space-y-3 text-xs">
+                        <div class="flex justify-between items-center border-b border-amber-200 pb-2">
+                            <div>
+                                <span class="bg-amber-500 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px]">قيد المراجعة ⌛</span>
+                                <h4 class="font-black text-amber-950 text-sm mt-1">${clinic.title || ''} - ${clinic.doctor || ''}</h4>
+                            </div>
+                            <span class="font-mono text-amber-800 font-bold">${b.refCode}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-amber-900 font-semibold">
+                            <div>اسم المريض: <span class="font-bold">${b.patientName}</span></div>
+                            <div>تاريخ الحجز: <span class="font-bold">${b.date}</span></div>
+                            <div>نوع الحجز: <span class="font-bold">${b.type}</span></div>
+                            <div>طريقة الدفع: <span class="font-bold">${b.paymentMethod || 'كاش'}</span></div>
+                        </div>
+                        <p class="text-[11px] text-amber-800 bg-amber-100/60 p-2 rounded-xl">
+                            ℹ️ طلبك قيد المراجعة بواسطة سكرتيرة العيادة، وستصلك الموافقة ورقم الدور عند المعاودة بالاستعلام هنا.
+                        </p>
+                    </div>
+                    `;
+                } else if (b.status === 'APPROVED') {
+                    const today = getTodayISO();
+                    const todayBookings = bookingsList.filter(bk => bk.clinicId === b.clinicId && bk.status === 'APPROVED' && bk.date === b.date);
+                    const currentInside = todayBookings.find(bk => bk.queueStatus === 'INSIDE');
+                    const patientsAhead = todayBookings.filter(bk => bk.queueNum < b.queueNum && bk.queueStatus !== 'COMPLETED').length;
+
+                    html += `
+                    <div class="bg-emerald-50 border-2 border-emerald-400 p-5 rounded-2xl space-y-4 text-xs shadow-md">
+                        <div class="flex justify-between items-center border-b border-emerald-200 pb-3">
+                            <div>
+                                <span class="bg-emerald-600 text-white font-black px-2.5 py-0.5 rounded-full text-[10px]">مقبول ومعتمد ✅</span>
+                                <h4 class="font-black text-emerald-950 text-base mt-1">${clinic.title || ''} - ${clinic.doctor || ''}</h4>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-[10px] text-emerald-700 block font-bold">رقم دورك المحجوز</span>
+                                <span class="text-3xl font-black text-amber-600">#${b.queueNum}</span>
+                            </div>
+                        </div>
+
+                        <!-- LIVE QUEUE MONITOR BAR -->
+                        <div class="bg-slate-900 text-white p-4 rounded-2xl space-y-3 shadow-inner">
+                            <div class="flex justify-between items-center text-xs font-bold border-b border-slate-800 pb-2">
+                                <span class="text-amber-400 flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                                    <span>طابور العيادة المباشر (🔴):</span>
+                                </span>
+                                <span class="text-teal-300 font-extrabold">المتبقي أمامك: ${patientsAhead} مرضى</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                                    <span class="text-[10px] text-slate-400 block font-bold">المريض بالداخل الآن 🚪</span>
+                                    <span class="text-amber-400 font-black text-base">${currentInside ? `#${currentInside.queueNum} - ${currentInside.patientName}` : 'لا يوجد بالداخل حالياً'}</span>
+                                </div>
+                                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                                    <span class="text-[10px] text-slate-400 block font-bold">تاريخ الكشف</span>
+                                    <span class="text-teal-300 font-black text-base">${b.date}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-slate-700 font-semibold pt-1">
+                            <div>الكود المرجعي: <span class="font-bold text-slate-900">${b.refCode}</span></div>
+                            <div>طريقة الدفع: <span class="font-bold text-slate-900">${b.paymentMethod || 'كاش'}</span></div>
+                            <div>تكلفة الكشف: <span class="font-bold text-slate-900">${clinic.fee || '--'} ج.م</span></div>
+                            <div>عنوان العيادة: <span class="font-bold text-slate-900 truncate">${clinic.location || ''}</span></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                            <button onclick="printBookingTicket(${b.id})" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-print text-amber-400"></i>
+                                <span>طباعة تذكرة الحجز المباشرة</span>
+                            </button>
+                            <a href="${mapsUrl}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-black py-2.5 rounded-xl transition flex items-center justify-center gap-2 shadow-md">
+                                <i class="fa-solid fa-map-location-dot text-amber-300"></i>
+                                <span>🗺️ تتبع موقع العيادة بالخرائط</span>
+                            </a>
+                        </div>
+                    </div>
+                    `;
+                } else if (b.status === 'REJECTED') {
+                    html += `
+                    <div class="bg-rose-50 border border-rose-300 p-5 rounded-2xl space-y-2 text-xs text-rose-900">
+                        <div class="flex justify-between items-center border-b border-rose-200 pb-2">
+                            <div>
+                                <span class="bg-rose-600 text-white font-black px-2.5 py-0.5 rounded-full text-[10px]">حجز معتذر عنه ❌</span>
+                                <h4 class="font-black text-rose-950 text-sm mt-1">${clinic.title || ''}</h4>
+                            </div>
+                            <span class="font-mono text-rose-800 font-bold">${b.refCode}</span>
+                        </div>
+                        <p class="font-bold text-rose-800">سبب الاعتذار: ${b.cancelReason || 'تعذر تأكيد الحجز حالياً'}</p>
+                    </div>
+                    `;
+                }
+            });
+
+            // Render Replied Inquiries
+            matchedInquiries.forEach(inq => {
+                const clinic = clinicsList.find(c => c.id === inq.clinicId) || {};
+                html += `
+                <div class="bg-teal-50 border border-teal-300 p-5 rounded-2xl space-y-3 text-xs text-teal-950 shadow-sm">
+                    <div class="flex justify-between items-center border-b border-teal-200 pb-2">
+                        <span class="bg-teal-700 text-white font-black px-2.5 py-0.5 rounded-full text-[10px]">رد الاستفسار 💬</span>
+                        <span class="text-xs text-slate-500 font-bold">${clinic.title || ''}</span>
+                    </div>
+                    <div class="bg-white p-3 rounded-xl border border-teal-200">
+                        <span class="font-bold text-teal-800 block mb-1">سؤالك:</span>
+                        <p class="text-slate-700">${inq.question}</p>
+                    </div>
+                    <div class="bg-teal-100 p-3 rounded-xl border border-teal-300">
+                        <span class="font-bold text-teal-900 block mb-1">رد سكرتيرة العيادة:</span>
+                        <p class="text-teal-950 font-bold">${inq.reply}</p>
+                    </div>
+                </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        /* CLINIC DASHBOARD & SUBTABS */
+        function switchSubTab(tabName) {
+            currentSubTab = tabName;
+            document.querySelectorAll('.subtab-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-600', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+            });
+
+            document.querySelectorAll('.subtab-content').forEach(content => content.classList.add('hidden'));
+
+            const targetContent = document.getElementById(`subTab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (targetContent) targetContent.classList.remove('hidden');
+
+            const activeBtn = document.getElementById(`tabBtn${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-800', 'text-slate-400');
+                if (tabName === 'prescription') {
+                    activeBtn.classList.add('bg-amber-500', 'text-slate-950');
+                } else {
+                    activeBtn.classList.add('bg-teal-600', 'text-white');
+                }
+            }
+
+            renderPanelSubTabs();
+        }
+
+        function renderPanelSubTabs() {
+            if (!loggedInClinicId) return;
+
+            // Sync latest storage state
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            inquiriesList = getStorage('mawaed_inquiries_v2', []);
+            expensesList = getStorage('mawaed_expenses_v2', []);
+
+            renderPendingRequestsTable();
+            renderTodayQueueTable();
+            renderApprovedBookingsTable();
+            renderInquiriesList();
+            renderFinanceTab();
+
+            // STRICT ROLE ENFORCEMENT FOR PRESCRIPTION TAB
+            const rxBtn = document.getElementById('tabBtnPrescription');
+            if (rxBtn) {
+                if (currentClinicRole === 'doctor') {
+                    rxBtn.classList.remove('hidden');
+                } else {
+                    rxBtn.classList.add('hidden');
+                    if (currentSubTab === 'prescription') switchSubTab('pending');
+                }
+            }
+
+            const editBtn = document.getElementById('dashEditClinicBtn');
+            if (editBtn) {
+                if (currentClinicRole === 'doctor') editBtn.classList.remove('hidden');
+                else editBtn.classList.add('hidden');
+            }
+        }
+
+        function renderPendingRequestsTable() {
+            const tbody = document.getElementById('pendingRequestsTbody');
+            if (!tbody) return;
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            const allPending = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'PENDING');
+
+            safeSetText('badgePendingCount', allPending.length);
+
+            const dateVal = getInputValue('pendingFilterDate');
+            let filtered = allPending;
+
+            if (dateVal) {
+                filtered = filtered.filter(b => b.date === dateVal);
+            }
+
+            if (allPending.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد طلبات معلقة لهذه العيادة حالياً.</td></tr>`;
+                return;
+            }
+
+            if (filtered.length === 0 && dateVal) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-amber-400 font-bold bg-amber-500/10">تنبيه: يوجد عدد (${allPending.length}) طلبات معلقة لتواريخ أخرى. انقر "عرض الكل" بالأعلى للاطلاع عليها.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(b => {
+                html += `
+                <tr class="hover:bg-slate-800/40 border-b border-slate-800 transition">
+                    <td class="p-3.5 font-bold text-white">${b.patientName}</td>
+                    <td class="p-3.5 dir-ltr">${b.patientPhone}</td>
+                    <td class="p-3.5">${b.date}</td>
+                    <td class="p-3.5"><span class="bg-teal-900/60 text-teal-300 border border-teal-500/30 px-2.5 py-0.5 rounded-full">${b.type}</span></td>
+                    <td class="p-3.5 text-amber-300 font-bold">${b.paymentMethod || 'كاش بالعيادة'}</td>
+                    <td class="p-3.5 font-mono text-slate-400">${b.refCode}</td>
+                    <td class="p-3.5 text-center flex items-center justify-center gap-2">
+                        <button onclick="openApproveModal(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-1.5 rounded-xl transition text-[11px]">
+                            قبول واعتماد ✅
+                        </button>
+                        <button onclick="openCancellationReasonModal(${b.id})" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]">
+                            إلغاء ❌
+                        </button>
+                    </td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderTodayQueueTable() {
+            const tbody = document.getElementById('todayQueueTbody');
+            if (!tbody || !loggedInClinicId) return;
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            const today = getTodayISO();
+            const todayBookings = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'APPROVED' && b.date === today);
+
+            todayBookings.sort((a,b) => a.queueNum - b.queueNum);
+
+            const currentInside = todayBookings.find(b => b.queueStatus === 'INSIDE');
+            const nextInLine = todayBookings.find(b => b.queueStatus === 'WAITING');
+
+            safeSetText('queueCurrentInsideNum', currentInside ? `#${currentInside.queueNum}` : '#--');
+            safeSetText('queueCurrentInsideName', currentInside ? currentInside.patientName : 'لا يوجد مريض بالداخل حالياً');
+
+            safeSetText('queueNextInLineNum', nextInLine ? `#${nextInLine.queueNum}` : '#--');
+            safeSetText('queueNextInLineName', nextInLine ? nextInLine.patientName : '--');
+
+            if (todayBookings.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">لا توجد حوافز أو أدوار مسجلة اليوم لهذه العيادة حتى الآن.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            todayBookings.forEach(b => {
+                let badge = '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full">منتظر ⌛</span>';
+                if (b.queueStatus === 'INSIDE') badge = '<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">بالداخل 🚪</span>';
+                if (b.queueStatus === 'COMPLETED') badge = '<span class="bg-slate-700 text-slate-400 px-2.5 py-0.5 rounded-full">مكتمل ✅</span>';
+
+                html += `
+                <tr class="hover:bg-slate-800/40 border-b border-slate-800 transition">
+                    <td class="p-3.5 font-black text-amber-400 text-base">#${b.queueNum}</td>
+                    <td class="p-3.5 font-bold text-white">${b.patientName} <span class="text-[10px] text-slate-400 font-normal dir-ltr block">${b.patientPhone}</span></td>
+                    <td class="p-3.5">${b.type}</td>
+                    <td class="p-3.5">${badge}</td>
+                    <td class="p-3.5 text-center flex items-center justify-center gap-2">
+                        ${b.queueStatus !== 'COMPLETED' ? `
+                            <button onclick="callPatientById(${b.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1.5 rounded-xl transition text-[11px] shadow">
+                                استدعاء 📢
+                            </button>
+                            <button onclick="completePatientById(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]">
+                                إنهاء ✅
+                            </button>
+                        ` : '<span class="text-slate-500 text-[11px]">تم الكشف</span>'}
+                        <button onclick="openEditQueueNumberModal(${b.id}, ${b.queueNum}, '${b.patientName}')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 font-bold px-2.5 py-1.5 rounded-xl transition text-[11px]" title="تعديل رقم الدور">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderApprovedBookingsTable() {
+            const tbody = document.getElementById('approvedBookingsTbody');
+            if (!tbody || !loggedInClinicId) return;
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            const approved = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'APPROVED');
+
+            approved.sort((a,b) => new Date(b.date) - new Date(a.date) || a.queueNum - b.queueNum);
+
+            if (approved.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات معتمدة مسجلة لعيادتكم بعد.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            approved.forEach(b => {
+                let stLabel = 'معتمد';
+                if (b.queueStatus === 'INSIDE') stLabel = 'بالداخل 🚪';
+                if (b.queueStatus === 'COMPLETED') stLabel = 'مكتمل ✅';
+
+                html += `
+                <tr class="hover:bg-slate-800/40 border-b border-slate-800 transition">
+                    <td class="p-3.5 font-black text-amber-400">#${b.queueNum}</td>
+                    <td class="p-3.5 font-bold text-white">${b.patientName}</td>
+                    <td class="p-3.5 dir-ltr">${b.patientPhone}</td>
+                    <td class="p-3.5">${b.date}</td>
+                    <td class="p-3.5 text-amber-300 font-bold">${b.paymentMethod || 'كاش بالعيادة'}</td>
+                    <td class="p-3.5"><span class="bg-teal-900/60 text-teal-300 border border-teal-500/30 px-2.5 py-0.5 rounded-full">${stLabel}</span></td>
+                    <td class="p-3.5 text-center flex items-center justify-center gap-2">
+                        <button onclick="printBookingTicket(${b.id})" class="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 px-3 py-1.5 rounded-xl transition text-[11px] font-bold">
+                            <i class="fa-solid fa-print text-amber-400"></i> طباعة
+                        </button>
+                        ${currentClinicRole === 'doctor' ? `
+                        <button onclick="openDoctorRxForPatient('${b.patientName}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-xl transition text-[11px] font-black">
+                            <i class="fa-solid fa-prescription"></i> روشتة Rx
+                        </button>
+                        ` : ''}
+                    </td>
+                </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function renderInquiriesList() {
+            const container = document.getElementById('inquiriesListContainer');
+            if (!container || !loggedInClinicId) return;
+
+            inquiriesList = getStorage('mawaed_inquiries_v2', []);
+            const clinicInquiries = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
+
+            const pendingInquiries = clinicInquiries.filter(i => !i.reply);
+            safeSetText('badgeInquiryCount', pendingInquiries.length);
+
+            if (clinicInquiries.length === 0) {
+                container.innerHTML = `<p class="p-6 text-center text-slate-500 italic bg-slate-900/50 rounded-2xl border border-slate-800">لا توجد استفسارات مرسلة لعيادتكم حالياً.</p>`;
+                return;
+            }
+
+            let html = '';
+            clinicInquiries.slice().reverse().forEach(inq => {
+                html += `
+                <div class="bg-slate-900/80 p-4 rounded-2xl border ${inq.reply ? 'border-slate-800' : 'border-amber-500/40'} space-y-3">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-teal-300">${inq.patientName} (${inq.patientPhone})</span>
+                        <span class="text-slate-500 text-[11px]">${inq.date || ''}</span>
+                    </div>
+                    <p class="text-xs text-slate-200 bg-slate-800 p-3 rounded-xl">${inq.question}</p>
+
+                    ${inq.reply ? `
+                    <div class="bg-teal-950/60 border border-teal-500/30 p-3 rounded-xl text-xs">
+                        <span class="text-teal-400 font-bold block mb-1">الرد المُرسل للمريض:</span>
+                        <p class="text-teal-100">${inq.reply}</p>
+                    </div>
+                    ` : `
+                    <div class="flex gap-2 text-xs">
+                        <input type="text" id="inqReplyInput_${inq.id}" placeholder="اكتب الرد المباشر للمريض..." class="flex-grow bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-amber-400">
+                        <button onclick="replyToPatientInquiry(${inq.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-4 py-2.5 rounded-xl transition whitespace-nowrap">
+                            إرسال الرد 💬
+                        </button>
+                    </div>
+                    `}
+                </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderFinanceTab() {
+            if (!loggedInClinicId) return;
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            expensesList = getStorage('mawaed_expenses_v2', []);
+
+            const clinic = clinicsList.find(c => Number(c.id) === Number(loggedInClinicId));
+            const fee = clinic ? clinic.fee : 0;
+
+            const approvedCount = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'APPROVED').length;
+            const totalRevenue = approvedCount * fee;
+
+            const clinicExpenses = expensesList.filter(e => Number(e.clinicId) === Number(loggedInClinicId));
+            const totalExpenses = clinicExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+
+            const netProfit = totalRevenue - totalExpenses;
+
+            safeSetText('finTotalRevenue', `${totalRevenue.toLocaleString('ar-EG')} ج.م`);
+            safeSetText('finTotalExpenses', `${totalExpenses.toLocaleString('ar-EG')} ج.م`);
+            safeSetText('finNetProfit', `${netProfit.toLocaleString('ar-EG')} ج.م`);
+        }
+
+        /* PENDING REQUESTS DATE FILTERS */
+        function setPendingFilterToday() {
+            setInputValue('pendingFilterDate', getTodayISO());
+            renderPendingRequestsTable();
+        }
+
+        function setPendingFilterTomorrow() {
+            const tom = new Date();
+            tom.setDate(tom.getDate() + 1);
+            const year = tom.getFullYear();
+            const month = String(tom.getMonth() + 1).padStart(2, '0');
+            const day = String(tom.getDate()).padStart(2, '0');
+            setInputValue('pendingFilterDate', `${year}-${month}-${day}`);
+            renderPendingRequestsTable();
+        }
+
+        function clearPendingFilterDate() {
+            setInputValue('pendingFilterDate', '');
+            renderPendingRequestsTable();
+        }
+
+        /* ACTIONS & HANDLERS */
+        function submitPatientBooking(e) {
+            e.preventDefault();
+            if (!selectedBookingClinicId) {
+                showToast('حدث خطأ في تحديد العيادة، يرجى فتح نافذة الحجز مجدداً.', '⚠️');
+                return;
+            }
+
+            const name = getInputValue('bmPatientName').trim();
+            const phone = getInputValue('bmPatientPhone').trim();
+            const date = getInputValue('bmBookingDate');
+            const type = getInputValue('bmBookingType');
+            const payment = getInputValue('bmPaymentMethod');
+            const notes = getInputValue('bmNotes').trim();
+
+            const refCode = `M-${Math.floor(10000 + Math.random() * 90000)}`;
+
+            const targetClinic = clinicsList.find(c => c.id === Number(selectedBookingClinicId));
+
+            const newBooking = {
+                id: Date.now(),
+                clinicId: Number(selectedBookingClinicId),
+                patientName: name,
+                patientPhone: phone,
+                date: date,
+                type: type,
+                paymentMethod: payment,
+                notes: notes,
+                refCode: refCode,
+                status: 'PENDING',
+                queueNum: 0,
+                queueStatus: 'WAITING'
+            };
+
+            bookingsList = getStorage('mawaed_bookings_v2', DEFAULT_SEED_BOOKINGS);
+            bookingsList.push(newBooking);
+            setStorage('mawaed_bookings_v2', bookingsList);
+
+            closeBookingModal();
+
+            showToast(`تم إرسال طلب حجزك إلى (${targetClinic.title}) بنجاح! كود الحجز: ${refCode}. يمكن لموظف العيادة مراجعته وقبوله الآن.`, '🚀');
+
+            // Refresh control panel immediately if current clinic is active
+            if (loggedInClinicId && Number(loggedInClinicId) === Number(selectedBookingClinicId)) {
+                renderPanelSubTabs();
+            }
+        }
+
+        function openBookingModal(clinicId) {
+            selectedBookingClinicId = Number(clinicId);
+            const clinic = clinicsList.find(c => c.id === selectedBookingClinicId);
+            if (!clinic) return;
+
+            safeSetText('bmClinicSpecialtyBadge', clinic.specialty);
+            safeSetText('bmClinicTitle', clinic.title);
+            safeSetText('bmDoctorName', `الدكتور: ${clinic.doctor}`);
+            safeSetText('bmClinicFee', `${clinic.fee} ج.م`);
+
+            setInputValue('bmBookingDate', getTodayISO());
+
+            const modal = document.getElementById('bookingModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleManualLoginSubmit(e) {
+            e.preventDefault();
+            const email = getInputValue('loginEmailInput').trim().toLowerCase();
+            const pass = getInputValue('loginPassInput').trim();
+
+            const clinic = clinicsList.find(c =>
+                c.doctorEmail.toLowerCase() === email || c.secEmail.toLowerCase() === email
+            );
+
+            if (!clinic) {
+                showToast('البريد الإلكتروني غير مسجل في أي عيادة.', '❌');
+                return;
+            }
+
+            if (clinic.doctorEmail.toLowerCase() === email && clinic.doctorPass === pass) {
+                currentClinicRole = 'doctor';
+                loggedInClinicId = clinic.id;
+            } else if (clinic.secEmail.toLowerCase() === email && clinic.secPass === pass) {
+                currentClinicRole = 'secretary';
+                loggedInClinicId = clinic.id;
+            } else {
+                showToast('كلمة المرور غير صحيحة.', '❌');
+                return;
+            }
+
+            closeClinicLoginModal();
+            updateDashboardPanelUI(clinic);
+            showToast(`تم تسجيل الدخول بنجاح بصلاحيات (${currentClinicRole === 'doctor' ? 'الطبيب المعالج' : 'السكرتيرة'}).`, '🔑');
+        }
+
+        function updateDashboardPanelUI(clinic) {
+            safeSetText('dashClinicTitle', clinic.title);
+            safeSetText('dashClinicSpecialty', clinic.specialty);
+            safeSetText('dashDoctorName', `الطبيب المعالج: ${clinic.doctor}`);
+            safeSetText('dashClinicRoleBadge', currentClinicRole === 'doctor' ? 'لوحة التحكم - الطبيب المعالج' : 'لوحة التحكم - السكرتيرة');
+
+            const panel = document.getElementById('clinicDashboardPanel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                panel.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            switchSubTab('pending');
+        }
+
+        function lockSystem() {
+            currentClinicRole = null;
+            loggedInClinicId = null;
+
+            const panel = document.getElementById('clinicDashboardPanel');
+            if (panel) panel.classList.add('hidden');
+
+            const editBtn = document.getElementById('dashEditClinicBtn');
+            if (editBtn) editBtn.classList.remove('hidden');
+
+            showToast('تم قفل النظام والخروج بنجاح.', '🔒');
+        }
+
+        /* DOCTOR SETTINGS MODAL */
+        function openDoctorSettingsModal() {
+            const modal = document.getElementById('doctorSettingsModal');
+            if (!modal) return;
+
+            modal.classList.remove('hidden');
+
+            if (currentClinicRole === 'doctor' && loggedInClinicId) {
+                document.getElementById('dsAuthStep').classList.add('hidden');
+                document.getElementById('dsFormStep').classList.remove('hidden');
+                loadDoctorSettingsData(loggedInClinicId);
+            } else {
+                document.getElementById('dsAuthStep').classList.remove('hidden');
+                document.getElementById('dsFormStep').classList.add('hidden');
+            }
+        }
+
+        function closeDoctorSettingsModal() {
+            const modal = document.getElementById('doctorSettingsModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function verifyDoctorForSettings(e) {
+            e.preventDefault();
+            const email = getInputValue('dsDoctorEmailInput').trim().toLowerCase();
+            const pass = getInputValue('dsDoctorPassInput').trim();
+
+            const clinic = clinicsList.find(c => c.doctorEmail.toLowerCase() === email && c.doctorPass === pass);
+            if (!clinic) {
+                showToast('بيانات إعتماد الطبيب غير صحيحة.', '❌');
+                return;
+            }
+
+            currentClinicRole = 'doctor';
+            loggedInClinicId = clinic.id;
+
+            document.getElementById('dsAuthStep').classList.add('hidden');
+            document.getElementById('dsFormStep').classList.remove('hidden');
+            loadDoctorSettingsData(clinic.id);
+        }
+
+        function loadDoctorSettingsData(clinicId) {
+            const clinic = clinicsList.find(c => c.id === clinicId);
+            if (!clinic) return;
+
+            safeSetText('dsClinicNameHeader', `تعديل: ${clinic.title}`);
+            setInputValue('editClinicName', clinic.title);
+            setInputValue('editDoctorName', clinic.doctor);
+            setInputValue('editFee', clinic.fee);
+            setInputValue('editWorkHours', clinic.workHours);
+            setInputValue('editLocation', clinic.location);
+            setInputValue('editDoctorPhotoUrl', clinic.photo);
+            setInputValue('editDoctorEmail', clinic.doctorEmail);
+            setInputValue('editDoctorPass', clinic.doctorPass);
+            setInputValue('editSecEmail', clinic.secEmail);
+            setInputValue('editSecPass', clinic.secPass);
+        }
+
+        function handleDoctorPhotoUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    setInputValue('editDoctorPhotoUrl', event.target.result);
+                    const preview = document.getElementById('editDoctorPhotoPreview');
+                    if (preview) {
+                        preview.innerHTML = `<img src="${event.target.result}" class="w-full h-full object-cover rounded-2xl">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function saveClinicSettings(e) {
+            e.preventDefault();
+            if (!loggedInClinicId) return;
+
+            const clinic = clinicsList.find(c => c.id === loggedInClinicId);
+            if (!clinic) return;
+
+            clinic.title = getInputValue('editClinicName').trim();
+            clinic.doctor = getInputValue('editDoctorName').trim();
+            clinic.fee = Number(getInputValue('editFee')) || clinic.fee;
+            clinic.workHours = getInputValue('editWorkHours').trim();
+            clinic.location = getInputValue('editLocation').trim();
+            clinic.photo = getInputValue('editDoctorPhotoUrl').trim() || clinic.photo;
+            clinic.doctorEmail = getInputValue('editDoctorEmail').trim();
+            clinic.doctorPass = getInputValue('editDoctorPass').trim();
+            clinic.secEmail = getInputValue('editSecEmail').trim();
+            clinic.secPass = getInputValue('editSecPass').trim();
+
+            setStorage('mawaed_clinics_v2', clinicsList);
+            renderClinicsGrid();
+            updateDashboardPanelUI(clinic);
+            closeDoctorSettingsModal();
+
+            showToast('تم حفظ وتحديث كافة بيانات العيادة والجدول بنجاح! ✅', '⚙️');
+        }
+
+        /* APPROVAL & REJECTION MODALS */
+        function openApproveModal(bookingId) {
+            currentApproveBookingId = bookingId;
+            const booking = bookingsList.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            safeSetText('appModalPatientInfo', `المريض: ${booking.patientName} (${booking.date})`);
+
+            // Auto suggest next queue number
+            const todayBookings = bookingsList.filter(b => b.clinicId === booking.clinicId && b.status === 'APPROVED' && b.date === booking.date);
+            const nextNum = todayBookings.length > 0 ? Math.max(...todayBookings.map(b => b.queueNum)) + 1 : 1;
+
+            setInputValue('appModalQueueNumInput', nextNum);
+
+            const modal = document.getElementById('approveBookingModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeApproveModal() {
+            const modal = document.getElementById('approveBookingModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function confirmApproveBookingSubmit() {
+            if (!currentApproveBookingId) return;
+            const booking = bookingsList.find(b => b.id === currentApproveBookingId);
+            if (!booking) return;
+
+            const num = Number(getInputValue('appModalQueueNumInput')) || 1;
+            booking.status = 'APPROVED';
+            booking.queueNum = num;
+            booking.queueStatus = 'WAITING';
+
+            setStorage('mawaed_bookings_v2', bookingsList);
+            closeApproveModal();
+            renderPanelSubTabs();
+
+            showToast(`تم اعتماد الحجز بنجاح ورقم الدور الممنوح للمريض هو #${num}.`, '✅');
+        }
+
+        function openCancellationReasonModal(bookingId) {
+            currentCancelBookingId = bookingId;
+            setInputValue('customCancelReason', '');
+            const modal = document.getElementById('cancellationReasonModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeCancellationReasonModal() {
+            const modal = document.getElementById('cancellationReasonModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function setCancelReason(reason) {
+            setInputValue('customCancelReason', reason);
+        }
+
+        function confirmBookingRejectionWithReason() {
+            if (!currentCancelBookingId) return;
+            const booking = bookingsList.find(b => b.id === currentCancelBookingId);
+            if (!booking) return;
+
+            const reason = getInputValue('customCancelReason').trim() || 'تعذر تأكيد الحجز حالياً';
+            booking.status = 'REJECTED';
+            booking.cancelReason = reason;
+
+            setStorage('mawaed_bookings_v2', bookingsList);
+            closeCancellationReasonModal();
+            renderPanelSubTabs();
+
+            showToast('تم تسجيل إلغاء الحجز وإرسال السبب للمريض.', '🚫');
+        }
+
+        function openEditQueueNumberModal(bookingId, currentNum, name) {
+            currentEditQueueBookingId = bookingId;
+            safeSetText('editQueueModalPatientInfo', `المريض: ${name}`);
+            setInputValue('editQueueModalNumInput', currentNum);
+
+            const modal = document.getElementById('editQueueNumberModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeEditQueueModal() {
+            const modal = document.getElementById('editQueueNumberModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function confirmEditQueueNumberSubmit() {
+            if (!currentEditQueueBookingId) return;
+            const booking = bookingsList.find(b => b.id === currentEditQueueBookingId);
+            if (!booking) return;
+
+            const newNum = Number(getInputValue('editQueueModalNumInput')) || 1;
+            booking.queueNum = newNum;
+
+            setStorage('mawaed_bookings_v2', bookingsList);
+            closeEditQueueModal();
+            renderPanelSubTabs();
+
+            showToast(`تم تعديل رقم دور المريض إلى #${newNum}.`, '✏️');
+        }
+
+        /* QUEUE CALLING & PATIENT LIVE MONITOR */
+        function callPatientById(id) {
+            const booking = bookingsList.find(b => b.id === id);
+            if (!booking) return;
+
+            bookingsList.forEach(b => {
+                if (b.clinicId === booking.clinicId && b.date === booking.date && b.queueStatus === 'INSIDE') {
+                    b.queueStatus = 'COMPLETED';
+                }
+            });
+
+            booking.queueStatus = 'INSIDE';
+            setStorage('mawaed_bookings_v2', bookingsList);
+            renderTodayQueueTable();
+
+            // Speech Synthesis Audio Call
+            if ('speechSynthesis' in window) {
+                const speech = new SpeechSynthesisUtterance(`تفضل المريض رقم ${booking.queueNum} ${booking.patientName} لدخول العيادة`);
+                speech.lang = 'ar-SA';
+                window.speechSynthesis.speak(speech);
+            }
+
+            showToast(`جاري استدعاء المريض #${booking.queueNum} - ${booking.patientName}`, '📢');
+        }
+
+        function callNextPatientInQueue() {
+            const today = getTodayISO();
+            const waiting = bookingsList.filter(b => b.clinicId === loggedInClinicId && b.status === 'APPROVED' && b.date === today && b.queueStatus === 'WAITING');
+            if (waiting.length === 0) {
+                showToast('لا يوجد مرضى بانتظار الاستدعاء اليوم.', 'ℹ️');
+                return;
+            }
+
+            waiting.sort((a,b) => a.queueNum - b.queueNum);
+            callPatientById(waiting[0].id);
+        }
+
+        function completePatientById(id) {
+            const booking = bookingsList.find(b => b.id === id);
+            if (!booking) return;
+
+            booking.queueStatus = 'COMPLETED';
+            setStorage('mawaed_bookings_v2', bookingsList);
+            renderTodayQueueTable();
+
+            showToast(`تم إنهاء كشف المريض #${booking.queueNum}`, '✅');
+        }
+
+        function openPatientLiveQueueModal(clinicId) {
+            const clinic = clinicsList.find(c => c.id === clinicId);
+            if (!clinic) return;
+
+            safeSetText('pqModalClinicTitle', clinic.title);
+            safeSetText('pqModalDoctorName', `الدكتور: ${clinic.doctor}`);
+
+            const today = getTodayISO();
+            const todayBookings = bookingsList.filter(b => b.clinicId === clinicId && b.status === 'APPROVED' && b.date === today);
+
+            const currentInside = todayBookings.find(b => b.queueStatus === 'INSIDE');
+            const nextInLine = todayBookings.find(b => b.queueStatus === 'WAITING');
+
+            safeSetText('pqCurrentInsideNum', currentInside ? `#${currentInside.queueNum}` : '#--');
+            safeSetText('pqCurrentInsideName', currentInside ? currentInside.patientName : 'لا يوجد مريض بالداخل');
+
+            safeSetText('pqNextInLineNum', nextInLine ? `#${nextInLine.queueNum}` : '#--');
+            safeSetText('pqNextInLineName', nextInLine ? nextInLine.patientName : '--');
+
+            const listContainer = document.getElementById('pqLiveQueueListContainer');
+            if (listContainer) {
+                if (todayBookings.length === 0) {
+                    listContainer.innerHTML = `<p class="p-4 text-center text-slate-400 italic">لا توجد أدوار مسجلة بالعيادة اليوم حتى الآن.</p>`;
+                } else {
+                    let html = '';
+                    todayBookings.sort((a,b) => a.queueNum - b.queueNum).forEach(b => {
+                        let st = 'منتظر';
+                        if (b.queueStatus === 'INSIDE') st = 'بالداخل 🚪';
+                        if (b.queueStatus === 'COMPLETED') st = 'مكتمل ✅';
+                        html += `
+                        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                            <span class="font-black text-amber-600">#${b.queueNum} - ${b.patientName}</span>
+                            <span class="font-bold text-slate-600 text-[11px]">${st}</span>
+                        </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                }
+            }
+
+            const modal = document.getElementById('patientQueueModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closePatientLiveQueueModal() {
+            const modal = document.getElementById('patientQueueModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        /* INQUIRIES MODALS & HANDLERS */
+        function openInquiryModal() {
+            const select = document.getElementById('inquiryClinicSelect');
+            if (select) {
+                select.innerHTML = clinicsList.map(c => `<option value="${c.id}">${c.title} - ${c.doctor}</option>`).join('');
+            }
+            const modal = document.getElementById('inquiryModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeInquiryModal() {
+            const modal = document.getElementById('inquiryModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function submitPatientInquiry(e) {
+            e.preventDefault();
+            const clinicId = Number(getInputValue('inquiryClinicSelect'));
+            const name = getInputValue('inquiryPatientName').trim();
+            const phone = getInputValue('inquiryPatientPhone').trim();
+            const question = getInputValue('inquiryQuestion').trim();
+
+            const newInq = {
+                id: Date.now(),
+                clinicId: clinicId,
+                patientName: name,
+                patientPhone: phone,
+                question: question,
+                reply: '',
+                date: new Date().toLocaleDateString('ar-EG')
+            };
+
+            inquiriesList.push(newInq);
+            setStorage('mawaed_inquiries_v2', inquiriesList);
+
+            closeInquiryModal();
+            showToast('تم إرسال استفسارك لسكرتيرة العيادة بنجاح! يرجى الاستعلام برقم هاتفك لمتابعة الرد.', '📤');
+        }
+
+        function replyToPatientInquiry(inqId) {
+            const inq = inquiriesList.find(i => i.id === inqId);
+            if (!inq) return;
+
+            const replyText = getInputValue(`inqReplyInput_${inqId}`).trim();
+            if (!replyText) {
+                showToast('يرجى كتابة نص الرد أولاً.', '⚠️');
+                return;
+            }
+
+            inq.reply = replyText;
+            setStorage('mawaed_inquiries_v2', inquiriesList);
+            renderInquiriesList();
+
+            showToast('تم إرسال الرد للمريض بنجاح.', '💬');
+        }
+
+        /* PRESCRIPTION (Rx) FUNCTIONS - DOCTOR ONLY */
+        function openDoctorRxForPatient(patientName) {
+            setInputValue('rxPatientName', patientName);
+            safeSetText('rxPatientTag', `المريض الحالي: ${patientName}`);
+
+            currentRxDrugs = [];
+            renderRxDrugsList();
+
+            switchSubTab('prescription');
+        }
+
+        function addRxDrugRow() {
+            const name = getInputValue('rxDrugName').trim();
+            const dose = getInputValue('rxDrugDose').trim();
+
+            if (!name || !dose) {
+                showToast('يرجى كتابة اسم الدواء والجرعة.', '⚠️');
+                return;
+            }
+
+            currentRxDrugs.push({ name, dose });
+            setInputValue('rxDrugName', '');
+            setInputValue('rxDrugDose', '');
+
+            renderRxDrugsList();
+        }
+
+        function renderRxDrugsList() {
+            const container = document.getElementById('rxDrugsList');
+            if (!container) return;
+
+            if (currentRxDrugs.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 italic text-center py-2">لم يتم إضافة أدوية للروشتة حتى الآن.</p>`;
+                return;
+            }
+
+            let html = '';
+            currentRxDrugs.forEach((d, idx) => {
+                html += `
+                <div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700">
+                    <div>
+                        <span class="font-bold text-amber-400">${idx + 1}. ${d.name}</span>
+                        <span class="text-slate-300 text-[11px] block">الجرعة: ${d.dose}</span>
+                    </div>
+                    <button onclick="removeRxDrugRow(${idx})" class="text-rose-400 hover:text-rose-300 font-bold px-2 py-1">✕</button>
+                </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeRxDrugRow(idx) {
+            currentRxDrugs.splice(idx, 1);
+            renderRxDrugsList();
+        }
+
+        function printCurrentPrescription() {
+            const patientName = getInputValue('rxPatientName') || 'مريض العيادة';
+            showToast(`🖨️ تم إعداد روشتة المريض ${patientName} للطباعة بنجاح!`, '💊');
+        }
+
+        /* FINANCE FUNCTIONS */
+        function addClinicExpense() {
+            if (!loggedInClinicId) return;
+
+            const title = getInputValue('expTitle').trim();
+            const amount = Number(getInputValue('expAmount'));
+
+            if (!title || !amount) {
+                showToast('يرجى إدخال بيان القيمة والمبلغ بشكل صحيح.', '⚠️');
+                return;
+            }
+
+            expensesList.push({
+                id: Date.now(),
+                clinicId: loggedInClinicId,
+                title: title,
+                amount: amount,
+                date: getTodayISO()
+            });
+
+            setStorage('mawaed_expenses_v2', expensesList);
+
+            setInputValue('expTitle', '');
+            setInputValue('expAmount', '');
+
+            renderFinanceTab();
+            showToast('تم تسجيل بند المصروفات بنجاح.', '💰');
+        }
+
+        /* CONTACT & SYSTEM SETTINGS MODALS */
+        function openContactModal() {
+            renderSystemContactInfo();
+            const modal = document.getElementById('contactModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeContactModal() {
+            const modal = document.getElementById('contactModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderSystemContactInfo() {
+            safeSetText('headerSysSubtitle', systemInfo.subtitle || "منظومة العيادات - اضغط للاتصال بنا");
+            safeSetText('contactHotlineText', systemInfo.hotline || "19999");
+            safeSetText('contactWhatsappText', systemInfo.whatsapp || "+20 100 000 0000");
+            safeSetText('contactEmailText', systemInfo.email || "support@mawaed.com");
+            safeSetText('contactWorkHoursText', systemInfo.workHours || "طوال أيام الأسبوع 24/7");
+
+            const hlLink = document.getElementById('contactHotlineLink');
+            if (hlLink) hlLink.href = `tel:${systemInfo.hotline.replace(/\s+/g, '')}`;
+
+            const waLink = document.getElementById('contactWhatsappLink');
+            if (waLink) {
+                const cleanPhone = systemInfo.whatsapp.replace(/[^0-9]/g, '');
+                waLink.href = `https://wa.me/${cleanPhone}`;
+            }
+
+            const mailLink = document.getElementById('contactEmailLink');
+            if (mailLink) mailLink.href = `mailto:${systemInfo.email}`;
+        }
+
+        function openSystemSettingsModal() {
+            const authStep = document.getElementById('sysAuthStep');
+            const formStep = document.getElementById('sysFormStep');
+            if (authStep) authStep.classList.remove('hidden');
+            if (formStep) formStep.classList.add('hidden');
+            setInputValue('sysAdminPassInput', '');
+
+            const modal = document.getElementById('systemSettingsModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function verifySystemPassword(e) {
+            e.preventDefault();
+            const pass = getInputValue('sysAdminPassInput').trim();
+            const SYSTEM_ADMIN_PASS = "2468";
+
+            if (pass !== SYSTEM_ADMIN_PASS) {
+                showToast('كلمة مرور إدارة المنظومة غير صحيحة.', '❌');
+                return;
+            }
+
+            setInputValue('sysEditHotline', systemInfo.hotline || '');
+            setInputValue('sysEditWhatsapp', systemInfo.whatsapp || '');
+            setInputValue('sysEditEmail', systemInfo.email || '');
+            setInputValue('sysEditWorkHours', systemInfo.workHours || '');
+            setInputValue('sysEditSubtitle', systemInfo.subtitle || '');
+
+            const authStep = document.getElementById('sysAuthStep');
+            const formStep = document.getElementById('sysFormStep');
+            if (authStep) authStep.classList.add('hidden');
+            if (formStep) formStep.classList.remove('hidden');
+
+            showToast('تم التحقق من كلمة المرور بنجاح.', '⚙️');
+        }
+
+        function closeSystemSettingsModal() {
+            const modal = document.getElementById('systemSettingsModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveSystemInfoSettings(e) {
+            e.preventDefault();
+
+            systemInfo = {
+                hotline: getInputValue('sysEditHotline').trim(),
+                whatsapp: getInputValue('sysEditWhatsapp').trim(),
+                email: getInputValue('sysEditEmail').trim(),
+                workHours: getInputValue('sysEditWorkHours').trim(),
+                subtitle: getInputValue('sysEditSubtitle').trim()
+            };
+
+            setStorage('mawaed_system_info_v2', systemInfo);
+            renderSystemContactInfo();
+            closeSystemSettingsModal();
+
+            showToast('تم حفظ وتحديث بيانات منظومة مواعيد بنجاح! ✅', '⚙️');
+        }
+
+        function submitContactForm(e) {
+            e.preventDefault();
+            const name = getInputValue('contactName').trim();
+
+            closeContactModal();
+            setInputValue('contactName', '');
+            setInputValue('contactPhone', '');
+            setInputValue('contactMessage', '');
+
+            showToast(`شكراً لك ${name ? '(' + name + ')' : ''}! تم إرسال رسالتك لفريق الدعم بنجاح وسنتواصل معك قريباً.`, '📞');
+        }
+
+        function printBookingTicket(bookingId) {
+            const booking = bookingsList.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            const clinic = clinicsList.find(c => c.id === booking.clinicId) || {};
+
+            safeSetText('prClinicTitle', `${clinic.title} - ${clinic.doctor}`);
+            safeSetText('prPatientName', booking.patientName);
+            safeSetText('prRefCode', booking.refCode);
+            safeSetText('prBookingDate', booking.date);
+            safeSetText('prQueueNum', `#${booking.queueNum}`);
+            safeSetText('prPaymentMethod', booking.paymentMethod || 'كاش بالعيادة');
+            safeSetText('prClinicFee', `${clinic.fee || '--'} ج.م`);
+
+            window.print();
+        }
+
+        // WINDOW ONLOAD INITIALIZATION
+        window.onload = function() {
+            autoExpireOutdatedBookings();
+            renderClinicsGrid();
+            renderSystemContactInfo();
+        };
     </script>
 </body>
 </html>
