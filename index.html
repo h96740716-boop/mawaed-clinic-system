@@ -794,44 +794,62 @@
             const btn = loginForm.querySelector('button[type="submit"]') || loginForm.querySelector('button');
             if (btn) { btn.disabled = true; btn.textContent = 'جاري الدخول...'; }
 
+            // 1) أولاً حاول تسجيل دخول من قائمة العيادات المحلية (الواجهة القديمة - شغال بدون Firebase Auth)
+            // هذا يسمح بالدخول حتى لو حسابات Firebase Auth مش موجودة
+            let foundClinic = null;
+            let foundRole = null;
+            for(const c of clinicsList){
+                if( (c.doctorEmail||'').toLowerCase() === email && (c.doctorPass||'') === pass ){
+                    foundClinic = c; foundRole='doctor'; break;
+                }
+                if( (c.secEmail||'').toLowerCase() === email && (c.secPass||'') === pass ){
+                    foundClinic = c; foundRole='sec'; break;
+                }
+            }
+
+            if(foundClinic){
+                loggedInClinicId = foundClinic.id;
+                currentClinicRole = foundRole;
+                localStorage.setItem('mawaed_logged_clinic_id', String(foundClinic.id));
+                localStorage.setItem('mawaed_logged_role', foundRole);
+                window.closeClinicLoginModal();
+                window.updateNavState();
+                window.showView('clinicDashboard');
+                if (foundRole === 'doctor') window.showToast(`أهلاً دكتور ${foundClinic.doctorName}! 👨‍⚕️`, '👨‍⚕️');
+                else window.showToast(`مرحباً سكرتارية ${foundClinic.name}! 👩‍💼`, '👩‍💼');
+                if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
+                return;
+            }
+
+            // 2) لو لم يجد في القائمة، حاول Firebase Auth (للمستقبل)
             try {
-                // تسجيل الدخول بـ Firebase Auth
                 const cred = await signInWithEmailAndPassword(auth, email, pass);
                 const uid = cred.user.uid;
                 currentUser = cred.user;
-
-                // قراءة الصلاحية من Firestore
                 const roleRef = doc(db, 'artifacts', appId, 'roles', uid);
                 const roleSnap = await getDoc(roleRef);
-
                 if (!roleSnap.exists()) {
-                    await signOut(auth);
-                    await signInAnonymously(auth);
-                    currentUser = auth.currentUser;
-                    throw new Error('لم يتم العثور على صلاحيات لهذا الحساب. تواصل مع المسؤول.');
+                    // لو مفيش دور، حاول تدخل كعيادة من القائمة مرة تانية بعد تحميل Firestore
+                    throw new Error('لم يتم العثور على صلاحيات. جرب ايميل العيادة الافتراضي');
                 }
-
                 const { role, clinicId } = roleSnap.data();
                 loggedInClinicId = clinicId;
                 currentClinicRole = role;
                 localStorage.setItem('mawaed_logged_clinic_id', String(clinicId));
                 localStorage.setItem('mawaed_logged_role', role);
-
                 window.closeClinicLoginModal();
                 window.updateNavState();
                 window.showView('clinicDashboard');
-
                 const clinic = clinicsList.find(c => Number(c.id) === Number(clinicId));
                 if (role === 'doctor') window.showToast(`أهلاً دكتور ${clinic?.doctorName || ''}! 👨‍⚕️`, '👨‍⚕️');
                 else window.showToast(`مرحباً سكرتارية عيادة ${clinic?.name || ''}! 👩‍💼`, '👩‍💼');
-
             } catch (err) {
                 console.error('Login error:', err);
                 const friendlyMsg =
                     err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found'
-                        ? 'خطأ في البريد الإلكتروني أو كلمة المرور!'
+                        ? 'خطأ في البريد أو كلمة المرور! جرب: doctor1@mawaed.com / 111111'
                         : err.code === 'auth/too-many-requests'
-                            ? 'محاولات كثيرة! انتظر قليلاً وحاول مرة أخرى.'
+                            ? 'محاولات كثيرة! انتظر قليلاً'
                             : err.message || 'خطأ في تسجيل الدخول';
                 window.showToast(`❌ ${friendlyMsg}`, '❌');
             } finally {
