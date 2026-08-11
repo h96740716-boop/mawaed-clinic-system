@@ -905,8 +905,9 @@
             if (!container) return;
             container.innerHTML = clinicsList.map(c => {
                 const img = c.doctorImage || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
-                return `<div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-5 space-y-4 hover:border-teal-500/50 transition duration-300 flex flex-col justify-between shadow-lg">
-                    <div class="space-y-3">
+                return `<div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-5 space-y-4 hover:border-teal-500/50 transition duration-300 flex flex-col justify-between shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-slate-950 text-[11px] font-black px-3 py-1 rounded-bl-xl rounded-tr-2xl">عيادة #${c.id}</div>
+                    <div class="space-y-3 pt-3">
                         <div class="flex items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
                                 <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-14 h-14 rounded-2xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
@@ -1034,7 +1035,7 @@
             const newBooking = {
                 id: Date.now(),
                 refCode,
-                clinicId: Number(document.getElementById('bookingClinicId').value),
+                clinicId: Number(selectedBookingClinicId || document.getElementById('bookingClinicId').value),
                 patientName: document.getElementById('bookPatientName').value.trim(),
                 patientAge: document.getElementById('bookPatientAge').value.trim(),
                 paymentMethod: document.getElementById('bookPaymentMethod').value,
@@ -1191,7 +1192,7 @@
             if (!loggedInClinicId) return;
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c) return;
-            document.getElementById('dashClinicName').innerText = c.name;
+            document.getElementById('dashClinicName').innerText = c.name + ' (ID:' + c.id + ')';
             document.getElementById('dashDoctorName').innerText = c.doctorName;
             document.getElementById('dashRoleBadge').innerText = currentClinicRole === 'doctor' ? '👨‍⚕️ دكتور' : '👩‍💼 سكرتارية';
             const rx = document.getElementById('tabBtnPrescription');
@@ -1216,6 +1217,12 @@
         function renderPendingRequestsTable() {
             const tbody = document.getElementById('pendingBookingsTbody');
             if (!tbody || !loggedInClinicId) return;
+            console.log('🔍 فلترة الحجوزات لـ عيادة', loggedInClinicId, 'من اصل', bookingsList.length, bookingsList);
+            // عرض ID العيادة الحالية في العنوان للمساعدة في الديباج
+            const titleEl = document.querySelector('#subTabPending h3, #subTabPending h4');
+            if(titleEl && !titleEl.innerHTML.includes('ID:')){
+                titleEl.innerHTML += ` <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">ID: ${loggedInClinicId}</span>`;
+            }
             const list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
             document.getElementById('badgePendingCount').innerText = list.length;
             const df = document.getElementById('filterPendingDate').value;
