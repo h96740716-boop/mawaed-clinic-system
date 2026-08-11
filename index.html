@@ -23,6 +23,20 @@
             #printablePrescriptionArea { position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; }
         }
     </style>
+
+    <style>
+    /* موبايل ريسبونسف */
+    html, body { overflow-x: hidden; max-width: 100vw; }
+    @media (max-width: 640px){
+        #clinicsCardsContainer { grid-template-columns: 1fr !important; padding: 0 12px; }
+        .bg-slate-800\/90 { padding: 14px !important; }
+        header nav { flex-wrap: wrap; gap: 8px; }
+        h1, h2 { font-size: 1.2rem !important; line-height: 1.4; }
+        .text-base { font-size: 14px !important; }
+        table { font-size: 11px; display: block; overflow-x: auto; white-space: nowrap; }
+        #bookingModal > div, #loginModal > div { width: 95% !important; max-width: 95% !important; margin: 10px auto; max-height: 90vh; overflow-y: auto; }
+    }
+    </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col custom-scrollbar">
 
@@ -99,7 +113,7 @@
                         </div>
                     </div>
                 </div>
-                <div id="clinicsCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <div id="clinicsCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-full px-3 sm:px-0 box-border" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-2 sm:px-0"></div>
             </div>
         </section>
 
