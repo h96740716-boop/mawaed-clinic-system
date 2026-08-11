@@ -664,9 +664,27 @@
                 }, (err) => { console.error("Clinics:", err); setStatus('error'); });
 
                 onSnapshot(getPublicColl('bookings'), (snap) => {
-                    bookingsList = snap.docs.map(d => d.data());
+                    let remote = snap.docs.map(d => d.data());
+                    // دمج الحجوزات المحلية (backup)
+                    try{
+                        const local = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
+                        // اضف المحلي اللي مش موجود في الريموت
+                        for(const lb of local){
+                            if(!remote.find(r=>r.id===lb.id)) remote.push(lb);
+                        }
+                    }catch(e){}
+                    bookingsList = remote;
                     if (loggedInClinicId) { renderPendingRequestsTable(); renderTodayQueueTable(); renderApprovedBookingsTable(); renderFinanceTab(); }
-                }, (err) => console.error("Bookings:", err));
+                }, (err) => {
+                    console.error("Bookings remote error:", err);
+                    // لو فشل Firebase، استخدم المحلي فقط
+                    try{
+                        const local = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
+                        bookingsList = local;
+                        if (loggedInClinicId) { renderPendingRequestsTable(); renderTodayQueueTable(); renderApprovedBookingsTable(); renderFinanceTab(); }
+                        window.showToast('⚠️ Firebase مقفول - نعرض الحجوزات المحلية فقط. افتح Rules في Firebase واعمل Publish', '⚠️');
+                    }catch(e){}
+                });
 
                 onSnapshot(getPublicColl('inquiries'), (snap) => {
                     inquiriesList = snap.docs.map(d => d.data());
@@ -1030,10 +1048,21 @@
                 createdAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
             };
 
+            // احفظ نسخة محلية فوراً كـ backup
+            try{
+                const localBookings = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
+                localBookings.push(newBooking);
+                localStorage.setItem('mawaed_local_bookings', JSON.stringify(localBookings));
+            }catch(e){}
+
             try {
                 console.log('📤 محاولة ارسال الحجز:', newBooking);
-                await setDoc(getPublicDoc('bookings', newBooking.id), newBooking);
-                console.log('✅ تم ارسال الحجز بنجاح');
+                if(db){
+                    await setDoc(getPublicDoc('bookings', newBooking.id), newBooking);
+                    console.log('✅ تم ارسال الحجز بنجاح لـ Firebase');
+                } else {
+                    throw new Error('db not ready');
+                }
                 // ✅ Toast تظهر فقط بعد نجاح الكتابة في Firebase
                 window.closeBookingModal();
                 document.getElementById('bookingForm').reset();
