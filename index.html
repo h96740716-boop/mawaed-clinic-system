@@ -985,8 +985,9 @@
         window.handleBookingSubmit = async function(e) {
             e.preventDefault();
 
-            if (!currentUser) {
-                window.showToast('❌ غير متصل بقاعدة البيانات! الحجز لن يصل للعيادة. حاول تحديث الصفحة.', '❌');
+            // السماح بالحجز حتى لو لم يكتمل تسجيل الدخول المجهول - Firebase Rules يجب ان تسمح بالكتابة
+            if (!db) {
+                window.showToast('❌ قاعدة البيانات غير جاهزة، حدث الصفحة', '❌');
                 return;
             }
 
@@ -1012,7 +1013,9 @@
             };
 
             try {
+                console.log('📤 محاولة ارسال الحجز:', newBooking);
                 await setDoc(getPublicDoc('bookings', newBooking.id), newBooking);
+                console.log('✅ تم ارسال الحجز بنجاح');
                 // ✅ Toast تظهر فقط بعد نجاح الكتابة في Firebase
                 window.closeBookingModal();
                 document.getElementById('bookingForm').reset();
