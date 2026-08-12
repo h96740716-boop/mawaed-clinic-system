@@ -1004,7 +1004,12 @@ window.showView = function(v) {
             container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
                 const ip = inq.status === 'pending';
                 const cp = (inq.phone || '').replace(/[^0-9]/g, '');
-                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
+                const clinic = clinicsList.find(x=> Number(x.id)===Number(loggedInClinicId));
+            const clinicName = clinic ? clinic.name : 'عيادتنا';
+            const safeName = (inq.patientName||'').replace(/"/g,'');
+                let waPhone = cp;
+                if(waPhone.startsWith('0')) waPhone = '2' + waPhone;
+            return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
                         <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone}</p></div></div>
                         <div class="flex items-center gap-2"><span class="text-[10px] text-slate-500 font-mono">${inq.date} - ${inq.time || ''}</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
@@ -1023,6 +1028,25 @@ window.showView = function(v) {
                 </div>`;
             }).join('');
         }
+
+
+        window.replyWhatsApp = function(inqId, waPhone, patientName, clinicName){
+            const replyEl = document.getElementById('reply_'+inqId);
+            const customReply = replyEl ? replyEl.value.trim() : '';
+            if(!customReply){ window.showToast('اكتب الرد أولاً ✍️','✍️'); replyEl?.focus(); return; }
+            const welcome = `مرحبا ${patientName} 👋\nيسعدنا الرد على استفساراتكم من ${clinicName} 🌿\n\n`;
+            const fullMsg = welcome + customReply + `\n\nمع تحيات ${clinicName} - مواعيد دوت كوم 💙`;
+            const encoded = encodeURIComponent(fullMsg);
+            let finalPhone = waPhone || '';
+            if(finalPhone.startsWith('01')) finalPhone = '2' + finalPhone;
+            const url = `https://wa.me/${finalPhone}?text=${encoded}`;
+            window.open(url, '_blank');
+            const inq = inquiriesList.find(i=>i.id===inqId);
+            if(inq && inq.status==='pending'){ toggleInquiryStatus(inqId); }
+            window.showToast('تم فتح الواتساب بالرد ✅','💬');
+        };
+
+
 
         window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
         window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
