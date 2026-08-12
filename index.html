@@ -439,8 +439,8 @@
                 <!-- حقول وهمية لخداع المتصفح -->
                 <input type="text" style="display:none" autocomplete="username">
                 <input type="password" style="display:none" autocomplete="new-password">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="text" inputmode="email" id="loginEmail" name="mawaed_no_save_email_xyz" required placeholder="doctor1@mawaed.com" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" name="mawaed_no_save_pass_xyz" required placeholder="••••••••" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="text" inputmode="email" id="loginEmail" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" spellcheck="false" name="mawaed_no_save_email_xyz" required placeholder="doctor1@mawaed.com" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" name="mawaed_no_save_pass_xyz" required placeholder="••••••••" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition mt-4">تسجيل الدخول 🔓</button>
             </form>
         </div>
@@ -901,20 +901,29 @@
             }
         };
 
+        
         window.logoutClinic = async function() {
-            try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
-            // إعادة الدخول كـ مريض مجهول
-            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
+            try { await signOut(auth); } catch(e) {}
+            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) {}
             loggedInClinicId = null;
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
+            localStorage.removeItem('mawaed_logged_clinic');
+            try{ sessionStorage.clear(); }catch(e){}
+            const e=document.getElementById('loginEmail'); const p=document.getElementById('loginPassword');
+            if(e){ e.value=''; e.setAttribute('value',''); e.setAttribute('autocomplete','off'); }
+            if(p){ p.value=''; p.setAttribute('value',''); p.setAttribute('autocomplete','new-password'); }
+            document.getElementById('loginFormMain')?.reset();
+            // اقفل اي autofill
+            document.querySelectorAll('input').forEach(inp=>{ if(inp.id==='loginEmail' || inp.id==='loginPassword'){ inp.value=''; }});
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
+            setTimeout(()=>{ const ee=document.getElementById('loginEmail'); const pp=document.getElementById('loginPassword'); if(ee) ee.value=''; if(pp) pp.value=''; }, 200);
         };
 
-        window.showView = function(v) {
+window.showView = function(v) {
             document.getElementById('viewPatientLanding').classList.add('hidden');
             document.getElementById('viewClinicDashboard').classList.add('hidden');
             if (v === 'patientLanding') { document.getElementById('viewPatientLanding').classList.remove('hidden'); renderClinicCards(); }
