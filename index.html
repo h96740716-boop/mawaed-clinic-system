@@ -317,7 +317,7 @@
                         <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">سعر الإعادة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
@@ -391,7 +391,7 @@
                 <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">رقم الهاتف *</label><input type="tel" id="bookPatientPhone" required placeholder="01xxxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">تاريخ الكشف *</label><input type="date" id="bookDate" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="استشارة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
+                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="إعادة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
                     <span class="text-slate-400">قيمة رسوم الكشف:</span>
@@ -936,7 +936,7 @@
                                 <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-14 h-14 rounded-2xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
                                 <div><span class="bg-teal-500/10 text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-teal-500/30"><i class="fa-solid ${c.icon || 'fa-user-doctor'} ml-1"></i> ${c.name}</span><h4 class="text-base font-extrabold text-white mt-1">${c.doctorName}</h4></div>
                             </div>
-                            <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">${c.price} ج.م</span>
+                            <div class="flex flex-col gap-1 items-end"><span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">كشف: ${c.price} ج.م</span><span class="bg-teal-500/10 text-teal-300 border border-teal-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">إعادة: ${c.consultPrice || Math.round(c.price*0.4)} ج.م</span></div>
                         </div>
                         <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
                             <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
@@ -1030,7 +1030,7 @@
             if (!c) return;
             const type = document.getElementById('bookType').value;
             let fee = c.price;
-            if (type === 'استشارة') fee = c.consultPrice || Math.round(c.price * 0.4);
+            if (type === 'إعادة') fee = c.consultPrice || Math.round(c.price * 0.4);
             if (type === 'كشف مستعجل') fee = Math.round(c.price * 1.3);
             document.getElementById('bookFeeDisplay').innerText = fee + " ج.م";
         };
