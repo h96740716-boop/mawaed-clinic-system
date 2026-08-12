@@ -1001,58 +1001,330 @@ window.showView = function(v) {
             const badge = document.getElementById('badgeInquiriesCount');
             if (badge) badge.innerText = ci.filter(i => i.status === 'pending').length;
             if (ci.length === 0) { container.innerHTML = `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا توجد رسائل أو استفسارات حالياً.</p>`; return; }
-            const clinic = clinicsList.find(x=> Number(x.id)===Number(loggedInClinicId));
-            const clinicName = clinic ? clinic.name : 'عيادتنا';
             container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
                 const ip = inq.status === 'pending';
                 const cp = (inq.phone || '').replace(/[^0-9]/g, '');
-                // convert 0xxxx to 2xxxx for wa.me
-                let waPhone = cp;
-                if(waPhone.startsWith('0')) waPhone = '2' + waPhone;
-                if(waPhone && !waPhone.startsWith('20') && waPhone.length===11) { /* already 2+ */ }
-                const safeName = (inq.patientName||'').replace(/"/g,'');
                 return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
                         <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone}</p></div></div>
                         <div class="flex items-center gap-2"><span class="text-[10px] text-slate-500 font-mono">${inq.date} - ${inq.time || ''}</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
                     </div>
                     <p class="text-xs text-slate-200 leading-relaxed pr-2 font-medium bg-slate-800/50 p-3 rounded-xl border border-slate-800">"${inq.message}"</p>
-                    
-                    <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700 space-y-2">
-                        <label class="text-[11px] text-slate-300 font-bold flex items-center gap-1"><i class="fa-solid fa-reply text-teal-400"></i> كتابة الرد:</label>
-                        <textarea id="reply_${inq.id}" rows="2" placeholder="اكتب ردك هنا وسيتم إرساله مع رسالة ترحيب..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:outline-none focus:border-emerald-500 resize-none"></textarea>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="replyWhatsApp(${inq.id}, '${waPhone}', '${safeName}', '${clinicName.replace(/'/g, '')}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-[11px] transition flex items-center gap-1.5 shadow"><i class="fa-brands fa-whatsapp text-sm"></i><span>رد واتساب مع ترحيب ✨</span></button>
-                            <a href="tel:${cp}" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-2 rounded-xl text-[11px] transition flex items-center gap-1.5"><i class="fa-solid fa-phone"></i><span>اتصال بالمريض</span></a>
-                            <button onclick="toggleInquiryStatus(${inq.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700">${ip ? 'تم الرد ✅' : 'جديد ⏳'}</button>
-                            <button onclick="deleteInquiry(${inq.id})" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-[11px] font-bold px-2.5 py-2 rounded-xl transition border border-rose-500/30"><i class="fa-solid fa-trash"></i></button>
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                        <div class="flex items-center gap-2">
+                            <a href="https://wa.me/${cp}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-emerald-400"></i><span>واتساب</span></a>
+                            <a href="tel:${cp}" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 border border-slate-700"><i class="fa-solid fa-phone text-teal-400"></i><span>اتصال</span></a>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="toggleInquiryStatus(${inq.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold px-3 py-1.5 rounded-xl transition border border-slate-700">${ip ? 'تحديد كـ "تم الرد" ✅' : 'إعادة كـ "جديد" ⏳'}</button>
+                            <button onclick="deleteInquiry(${inq.id})" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition border border-rose-500/30"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        window.replyWhatsApp = function(inqId, waPhone, patientName, clinicName){
-            const replyEl = document.getElementById('reply_'+inqId);
-            const customReply = replyEl ? replyEl.value.trim() : '';
-            if(!customReply){ window.showToast('اكتب الرد أولاً ✍️','✍️'); replyEl?.focus(); return; }
-            const welcome = `مرحباً ${patientName} 👋\nيسعدنا الرد على استفساراتكم من ${clinicName} 🌿\n\n`;
-            const fullMsg = welcome + customReply + `\n\nمع تحيات ${clinicName} - مواعيد دوت كوم 💙`;
-            const encoded = encodeURIComponent(fullMsg);
-            let finalPhone = waPhone || '';
-            // ensure Egypt code
-            if(finalPhone.startsWith('01')) finalPhone = '2' + finalPhone;
-            if(!finalPhone.startsWith('2') && finalPhone.length==11) finalPhone = '2'+finalPhone;
-            const url = `https://wa.me/${finalPhone}?text=${encoded}`;
-            window.open(url, '_blank');
-            // mark as replied
-            const inq = inquiriesList.find(i=>i.id===inqId);
-            if(inq && inq.status==='pending'){
-                toggleInquiryStatus(inqId);
-            }
-            window.showToast('تم فتح الواتساب بالرد ✅','💬');
+        window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
+        window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
+
+        window.openBookingModal = function(clinicId) {
+            selectedBookingClinicId = clinicId;
+            const c = clinicsList.find(x => Number(x.id) === Number(clinicId));
+            if (!c) return;
+            document.getElementById('bookingClinicId').value = c.id;
+            document.getElementById('modalClinicTitle').innerText = c.name;
+            document.getElementById('modalDoctorSub').innerText = c.doctorName + " - الكشف " + c.price + " ج.م";
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bookDate').min = today;
+            document.getElementById('bookDate').value = today;
+            window.updateBookingFeeDisplay();
+            document.getElementById('bookingModal').classList.remove('hidden');
         };
 
+        window.updateBookingFeeDisplay = function() {
+            const c = clinicsList.find(x => Number(x.id) === Number(selectedBookingClinicId));
+            if (!c) return;
+            const type = document.getElementById('bookType').value;
+            let fee = c.price;
+            if (type === 'إعادة') fee = c.consultPrice || Math.round(c.price * 0.4);
+            if (type === 'كشف مستعجل') fee = Math.round(c.price * 1.3);
+            document.getElementById('bookFeeDisplay').innerText = fee + " ج.م";
+        };
+
+        /* ================================================================
+           FIX #5 — handleBookingSubmit المُصلَح الرئيسي
+           ✅ Toast فقط عند نجاح الكتابة
+           ✅ try/catch شامل
+           ✅ زر معطل أثناء الإرسال
+           ✅ فحص currentUser قبل الإرسال
+           ================================================================ */
+        window.handleBookingSubmit = async function(e) {
+            e.preventDefault();
+
+            // السماح بالحجز حتى لو لم يكتمل تسجيل الدخول المجهول - Firebase Rules يجب ان تسمح بالكتابة
+            if (!db) {
+                window.showToast('❌ قاعدة البيانات غير جاهزة، حدث الصفحة', '❌');
+                return;
+            }
+
+            const btn = document.getElementById('bookingSubmitBtn');
+            if (btn) { btn.disabled = true; btn.textContent = 'جارِ الإرسال... ⏳'; }
+
+            const refCode = "MW-" + Math.floor(10000 + Math.random() * 90000);
+            const newBooking = {
+                id: Date.now(),
+                refCode,
+                clinicId: Number(selectedBookingClinicId || document.getElementById('bookingClinicId').value),
+                patientName: document.getElementById('bookPatientName').value.trim(),
+                patientAge: document.getElementById('bookPatientAge').value.trim(),
+                paymentMethod: document.getElementById('bookPaymentMethod').value,
+                patientAddress: document.getElementById('bookPatientAddress').value.trim(),
+                phone: document.getElementById('bookPatientPhone').value.trim(),
+                date: document.getElementById('bookDate').value,
+                type: document.getElementById('bookType').value,
+                fee: document.getElementById('bookFeeDisplay').innerText,
+                status: 'pending',
+                queueNumber: null,
+                createdAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // احفظ نسخة محلية فوراً كـ backup
+            try{
+                const localBookings = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
+                localBookings.push(newBooking);
+                localStorage.setItem('mawaed_local_bookings', JSON.stringify(localBookings));
+            }catch(e){}
+
+            try {
+                console.log('📤 محاولة ارسال الحجز:', newBooking);
+                if(db){
+                    await setDoc(getPublicDoc('bookings', newBooking.id), newBooking);
+                    console.log('✅ تم ارسال الحجز بنجاح لـ Firebase');
+                } else {
+                    throw new Error('db not ready');
+                }
+                // ✅ Toast تظهر فقط بعد نجاح الكتابة في Firebase
+                window.closeBookingModal();
+                document.getElementById('bookingForm').reset();
+                window.showToast(`✅ وصل حجزك للعيادة! كود الحجز: (${refCode})`, '🎉');
+            } catch (err) {
+                console.error("❌ Booking failed:", err);
+                // ✅ رسالة خطأ واضحة — الحجز لم يصل
+                window.showToast(`❌ فشل إرسال الحجز! (${err.code || err.message || 'خطأ'}) — حاول مرة أخرى.`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تأكيد وإرسال طلب الحجز 🚀'; }
+            }
+        };
+
+        function populateSettingsTab() {
+            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
+            if (!c) return;
+            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress', 'tabEditClinicPhone'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address, tabEditClinicPhone: c.phone || '' }[id];
+            });
+            // عرض البريد الإلكتروني الحالي من Firebase Auth
+            const emailDisplay = document.getElementById('currentEmailDisplay');
+            if (emailDisplay && auth?.currentUser?.email) emailDisplay.textContent = auth.currentUser.email;
+        }
+
+        // ================================================================
+        // تغيير البريد الإلكتروني عبر Firebase Auth
+        // ================================================================
+        window.handleChangeEmail = async function(e) {
+            e.preventDefault();
+            const newEmail = document.getElementById('newEmailInput').value.trim();
+            const currentPass = document.getElementById('currentPassForEmail').value.trim();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
+            try {
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير البريد
+                await updateEmail(auth.currentUser, newEmail);
+                document.getElementById('currentEmailDisplay').textContent = newEmail;
+                document.getElementById('newEmailInput').value = '';
+                document.getElementById('currentPassForEmail').value = '';
+                window.showToast('✅ تم تغيير البريد الإلكتروني بنجاح!', '📧');
+            } catch (err) {
+                console.error('Email update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً!'
+                    : err.message || 'فشل تغيير البريد!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير البريد 📧'; }
+            }
+        };
+
+        // ================================================================
+        // تغيير كلمة المرور عبر Firebase Auth
+        // ================================================================
+        window.handleChangePassword = async function(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPassInput').value.trim();
+            const newPass = document.getElementById('newPassInput').value.trim();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
+            try {
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير كلمة المرور
+                await updatePassword(auth.currentUser, newPass);
+                document.getElementById('currentPassInput').value = '';
+                document.getElementById('newPassInput').value = '';
+                window.showToast('✅ تم تغيير كلمة المرور بنجاح!', '🔑');
+            } catch (err) {
+                console.error('Password update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/weak-password' ? 'كلمة المرور الجديدة ضعيفة جداً! (6 أحرف على الأقل)'
+                    : err.message || 'فشل تغيير كلمة المرور!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير كلمة المرور 🔑'; }
+            }
+        };
+
+        window.handleEditClinicSubmit = async function(e) {
+            e.preventDefault();
+            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
+            if (!c || !currentUser) return;
+            const btn = e.target.querySelector('button[type="submit"]');
+            if(btn) { btn.disabled=true; btn.textContent='جاري الحفظ...'; }
+            const updated = { 
+                ...c, 
+                name: document.getElementById('tabEditClinicName').value.trim(), 
+                doctorName: document.getElementById('tabEditDoctorName').value.trim(), 
+                doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), 
+                price: Number(document.getElementById('tabEditClinicPrice').value), 
+                consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
+                schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
+                address: document.getElementById('tabEditClinicAddress').value.trim(),
+                phone: document.getElementById('tabEditClinicPhone').value.trim(),
+                doctorEmail: document.getElementById('tabEditDoctorEmail').value.trim().toLowerCase(),
+                doctorPass: document.getElementById('tabEditDoctorPass').value.trim(),
+                secEmail: document.getElementById('tabEditSecEmail').value.trim().toLowerCase(),
+                secPass: document.getElementById('tabEditSecPass').value.trim()
+            };
+            // validation
+            if(updated.doctorPass.length < 6){ window.showToast('باسورد الدكتور لازم 6 أحرف على الأقل ❌','❌'); if(btn){btn.disabled=false; btn.textContent='حفظ التعديلات 💾';} return; }
+            if(updated.secPass.length < 3){ window.showToast('باسورد السكرتيرة قصير ❌','❌'); if(btn){btn.disabled=false; btn.textContent='حفظ التعديلات 💾';} return; }
+            try {
+                await setDoc(getPublicDoc('clinics', updated.id), updated);
+                window.showToast('تم تحديث بيانات العيادة وبيانات الدخول ✅');
+                // تحديث القائمة المحلية
+                const idx = clinicsList.findIndex(x=>x.id==updated.id);
+                if(idx>-1) clinicsList[idx]=updated;
+                renderClinicCards();
+            } catch(err){
+                console.error(err);
+                window.showToast('❌ فشل الحفظ: '+(err.message||''), '❌');
+            } finally {
+                if(btn){ btn.disabled=false; btn.textContent='حفظ التعديلات 💾'; }
+            }
+        };
+
+        function renderClinicDashboard() {
+            if (!loggedInClinicId) return;
+            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
+            if (!c) return;
+            document.getElementById('dashClinicName').innerText = c.name + ' (ID:' + c.id + ')';
+            document.getElementById('dashDoctorName').innerText = c.doctorName;
+            document.getElementById('dashRoleBadge').innerText = currentClinicRole === 'doctor' ? '👨‍⚕️ دكتور' : '👩‍💼 سكرتارية';
+            const rx = document.getElementById('tabBtnPrescription');
+            const rec = document.getElementById('tabBtnPatientRecords');
+            if (currentClinicRole === 'doctor') { rx?.classList.remove('hidden'); rec?.classList.remove('hidden'); }
+            else { rx?.classList.add('hidden'); rec?.classList.add('hidden'); if (['prescription', 'patientRecords'].includes(currentSubTab)) window.switchSubTab('pending'); }
+            populateSettingsTab();
+            window.switchSubTab(currentSubTab);
+        }
+
+        window.switchSubTab = function(k) {
+            currentSubTab = k;
+            document.querySelectorAll('.subtab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.subtab-btn').forEach(btn => { btn.classList.remove('bg-teal-600', 'text-white'); btn.classList.add('bg-slate-800', 'text-slate-400'); });
+            const m = { pending: ['subTabPending', 'tabBtnPending', renderPendingRequestsTable], queue: ['subTabQueue', 'tabBtnQueue', renderTodayQueueTable], approved: ['subTabApproved', 'tabBtnApproved', renderApprovedBookingsTable], inquiries: ['subTabInquiries', 'tabBtnInquiries', renderInquiriesList], prescription: ['subTabPrescription', 'tabBtnPrescription', null], patientRecords: ['subTabPatientRecords', 'tabBtnPatientRecords', renderPatientRecordsTable], finance: ['subTabFinance', 'tabBtnFinance', renderFinanceTab], settings: ['subTabSettings', 'tabBtnSettings', populateSettingsTab] };
+            const [cid, bid, fn] = m[k] || [];
+            if (cid) document.getElementById(cid)?.classList.remove('hidden');
+            if (bid) { const b = document.getElementById(bid); if (b) { b.classList.add('bg-teal-600', 'text-white'); b.classList.remove('bg-slate-800', 'text-slate-400'); } }
+            if (fn) fn();
+        };
+
+        async function autoExpireOldBookings(){
+            const todayStr = new Date().toISOString().split('T')[0];
+            for(const b of bookingsList){
+                if(b.status === 'pending' && b.date && b.date < todayStr){
+                    console.log('⏰ انتهى ميعاد الحجز:', b.id, b.date);
+                    try{
+                        if(window.db && window.firebaseUpdateDoc){
+                            const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                            // سنغير الحالة لـ expired
+                            const ref = doc(window.db, 'bookings', b.id.toString());
+                            await updateDoc(ref, { status: 'expired', expiredAt: new Date().toISOString() });
+                        }
+                        b.status = 'expired';
+                    }catch(e){ console.log('expire error', e); b.status='expired'; }
+                }
+            }
+        }
+
+        function renderPendingRequestsTable() {
+            autoExpireOldBookings();
+
+            const tbody = document.getElementById('pendingBookingsTbody');
+            if (!tbody || !loggedInClinicId) return;
+            console.log('🔍 فلترة الحجوزات لـ عيادة', loggedInClinicId, 'من اصل', bookingsList.length, bookingsList);
+            // عرض ID العيادة الحالية في العنوان للمساعدة في الديباج
+            const titleEl = document.querySelector('#subTabPending h3, #subTabPending h4');
+            if(titleEl && !titleEl.innerHTML.includes('ID:')){
+                titleEl.innerHTML += ` <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">ID: ${loggedInClinicId}</span>`;
+            }
+            const list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
+            document.getElementById('badgePendingCount').innerText = list.length;
+            const df = document.getElementById('filterPendingDate').value;
+            const display = df ? list.filter(b => b.date === df) : list;
+            if (display.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد طلبات حجز معلقة حالياً.</td></tr>`; return; }
+            tbody.innerHTML = display.map(b => `
+                <tr class="hover:bg-slate-800/60 border-b border-slate-800 transition">
+                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td>
+                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد عنوان'}</span><span class="block text-[10px] text-amber-300/80 font-normal"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
+                    <td class="p-3 font-mono">${b.phone}</td>
+                    <td class="p-3 font-bold text-teal-300">${b.date}</td>
+                    <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
+                    <td class="p-3 text-center flex justify-center gap-2">
+                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
+                        <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
+        window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await updateDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error(err); window.showToast('❌ فشل الاعتماد!', '❌'); } };
+        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', id), { status: 'cancelled' }); } catch (e) { console.error(e); } };
+        window.addDrugToRx = function() { const n = document.getElementById('rxDrugName').value.trim(); if (!n) { window.showToast('يرجى كتابة اسم الدواء.', '⚠️'); return; } currentRxDrugs.push({ name: n, dose: document.getElementById('rxDrugDose').value.trim() || 'حسب الإرشادات' }); document.getElementById('rxDrugName').value = ''; document.getElementById('rxDrugDose').value = ''; renderRxDrugsList(); };
+        function renderRxDrugsList() { const c = document.getElementById('rxDrugsContainer'); if (!c) return; if (!currentRxDrugs.length) { c.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية.</p>`; return; } c.innerHTML = currentRxDrugs.map((d, i) => `<div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-xs"><div><span class="font-extrabold text-amber-400">${i + 1}. ${d.name}</span><span class="text-slate-400 font-bold block text-[11px]">${d.dose}</span></div><button onclick="removeDrugFromRx(${i})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
+        window.removeDrugFromRx = (i) => { currentRxDrugs.splice(i, 1); renderRxDrugsList(); };
+
+        window.printCurrentPrescription = async function() {
+            const pn = document.getElementById('rxPatientName').value.trim();
+            if (!pn) { window.showToast('يرجى كتابة اسم المريض.', '⚠️'); return; }
+            const diag = document.getElementById('rxDiagnosis').value.trim();
+            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
+            const rec = { id: Date.now(), clinicId: Number(loggedInClinicId), patientName: pn, diagnosis: diag || 'لا يوجد ملاحظات', drugs: [...currentRxDrugs], date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) };
+            try { if (currentUser) await setDoc(getPublicDoc('patient_records', rec.id), rec); } catch (e) { console.error(e); }
+            document.getElementById('printDocName').innerText = c?.doctorName || 'الدكتور';
+            document.getElementById('printClinicTitle').innerText = c?.name || 'العيادة';
+            document.getElementById('printDate').innerText = new Date().toLocaleDateString('ar-EG');
+            document.getElementById('printPatientName').innerText = pn;
+            document.getElementById('printDiagnosis').innerText = diag || 'فحص عام';
+            document.getElementById('printDrugsList').innerHTML = currentRxDrugs.length ? currentRxDrugs.map((d, i) => `<div class="border-b border-slate-200 pb-2"><p class="font-extrabold text-sm text-slate-900">${i + 1}. ${d.name}</p><p class="text-xs text-teal-800 font-bold mr-4 mt-0.5">${d.dose}</p></div>`).join('') : `<p class="text-xs text-slate-500 italic">لم يتم إدراج أدوية.</p>`;
+            document.getElementById('prescriptionPrintModal').classList.remove('hidden');
+            window.showToast(`✅ تم حفظ الروشتة للمريض (${pn})!`, '📁');
+        };
 
         function renderPatientRecordsTable() {
             const tbody = document.getElementById('patientRecordsTbody');
