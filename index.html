@@ -434,9 +434,9 @@
                 <h3 class="text-lg font-black text-white">دخول العيادات والانتظار</h3>
                 <p class="text-xs text-slate-400">سجل دخولك بالطبيب أو السكرتيرة</p>
             </div>
-            <form onsubmit="handleClinicLogin(event)" class="space-y-4">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+            <form onsubmit="handleClinicLogin(event)" autocomplete="off" class="space-y-4">
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" autocomplete="off" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" autocomplete="new-password" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition">تسجيل الدخول 🔓</button>
             </form>
         </div>
