@@ -1378,8 +1378,8 @@
         }
 
         function renderFinanceTab() {
-            const cb = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status !== 'cancelled');
-            const rev = cb.reduce((s, b) => s + (parseInt(b.fee) || 0), 0);
+            const cb = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && ['approved','completed'].includes(b.status));
+            const rev = cb.reduce((s, b) => s + (parseInt(b.fee) || 0), 0); // الايراد فقط عند الاعتماد
             const ce = expensesList.filter(e => Number(e.clinicId) === Number(loggedInClinicId));
             const exp = ce.reduce((s, e) => s + Number(e.amount || 0), 0);
             document.getElementById('finTotalRevenue').innerText = rev + " ج.م";
