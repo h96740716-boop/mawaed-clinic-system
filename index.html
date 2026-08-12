@@ -321,6 +321,7 @@
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                        <div><label class="text-slate-300 font-bold block mb-1 flex items-center gap-1"><i class="fa-solid fa-phone text-emerald-400"></i> رقم تليفون العيادة *</label><input type="tel" id="tabEditClinicPhone" required placeholder="مثال: 01012345678" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-emerald-400 font-mono"></div>
                         <!-- 🔐 بيانات دخول الطبيب والسكرتيرة -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-amber-500/20 mt-2">
                             <div class="col-span-2"><p class="text-amber-400 font-black text-[11px] flex items-center gap-1"><i class="fa-solid fa-user-doctor"></i> بيانات دخول الطبيب:</p></div>
@@ -613,7 +614,7 @@
 
         /* DEFAULT DATA */
         const DEFAULT_CLINICS = [
-            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", phone: "01012345678", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
+            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
             { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
             { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
             { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
@@ -955,7 +956,7 @@ window.showView = function(v) {
                         <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
                             <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
                             <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
-                            <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-400 text-[10px]"></i> ${c.phone || "غير متوفر"}</p>
+                            <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-400 text-[10px]"></i> <span dir="ltr">${c.phone || "—"}</span></p>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-700/60">
