@@ -657,19 +657,17 @@
 
             try {
                 const app = initializeApp(firebaseConfig);
-              let appCheck = null;
+            let appCheck = null;
 try {
-  if (window.location.protocol !== 'file:' && window.location.hostname) {
-    appCheck = initializeAppCheck(app, { provider: new ReCaptchaV3Provider('6LcHPIUtAAAAABOcaewvTDFILcmewVEUIUfLvOA0'), isTokenAutoRefreshEnabled: true });
+  if (location.protocol !== 'file:' && location.hostname) {
+    appCheck = initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider('6LcHPIUtAAAAABOcaewvTDFILcmewVEUIUfLvOA0'),
+      isTokenAutoRefreshEnabled: true
+    });
   }
-} catch(e) { console.log('يعمل بدون حماية'); }
-
-                // ================================================================
-                // App Check — ضع مفتاح reCAPTCHA v3 هنا بعد تفعيله من:
-                // https://www.google.com/recaptcha/admin/create
-                // ================================================================
-              
-                }
+} catch(e) {
+  console.log('AppCheck bypass local');
+}
 
                 auth = getAuth(app);
                 db = getFirestore(app);
