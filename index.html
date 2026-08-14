@@ -657,6 +657,7 @@
 
             try {
                 const app = initializeApp(firebaseConfig);
+                const appCheck = initializeAppCheck(app, { provider: new ReCaptchaV3Provider('6LcHPIUtAAAAABOcaewvTDFILcmewVEUIUfLvOA0'), isTokenAutoRefreshEnabled: true });
 
                 // ================================================================
                 // App Check — ضع مفتاح reCAPTCHA v3 هنا بعد تفعيله من:
