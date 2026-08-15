@@ -154,11 +154,25 @@
                 <button onclick="switchSubTab('settings')" id="tabBtnSettings" class="subtab-btn bg-slate-800 text-amber-300 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-amber-500/30"><i class="fa-solid fa-sliders"></i><span>تعديل العيادة والجدول</span></button>
             </div>
 
-            <!-- PENDING -->
-            <div id="subTabPending" class="subtab-content space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
+            <!-- PENDING - مقسم لليوم والمنتظر -->
+            <div id="subTabPending" class="subtab-content space-y-6">
+                <!-- طلبات اليوم -->
+                <div class="bg-gradient-to-r from-blue-900/30 via-slate-800/80 to-slate-800/80 p-5 rounded-2xl border border-blue-500/40 space-y-3 shadow-lg">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-sm font-black text-blue-300 flex items-center gap-2"><i class="fa-solid fa-calendar-day"></i><span>📅 طلبات اليوم</span><span id="badgeTodayCount" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full text-[11px]">0</span></h4>
+                        <span class="text-[10px] text-slate-400" id="todayDateLabel"></span>
+                    </div>
+                    <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-blue-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض</th><th class="p-3">الهاتف</th><th class="p-3">النوع / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <tbody id="pendingTodayTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- الطلبات المنتظرة -->
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-amber-500/30 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-list-check"></i><span>طلبات الكشف المعلقة (مربوطة سحابياً)</span></h4>
+                        <h4 class="text-sm font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-clock"></i><span>⏳ الطلبات المنتظرة (أيام قادمة)</span><span id="badgeWaitingCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[11px]">0</span></h4>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <input type="date" id="filterPendingDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 rounded-xl text-xs px-3 py-1.5 text-white">
                             <button onclick="clearPendingDateFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-xl font-bold">عرض الكل</button>
@@ -166,11 +180,13 @@
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
-                            <tbody id="pendingBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
+                            <thead class="bg-slate-900 text-amber-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <tbody id="pendingWaitingTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
                 </div>
+                <!-- مخفي للتوافق -->
+                <table class="hidden"><tbody id="pendingBookingsTbody"></tbody></table>
             </div>
 
             <!-- QUEUE -->
@@ -317,11 +333,10 @@
                         <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الإعادة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        <div><label class="text-slate-300 font-bold block mb-1 flex items-center gap-1"><i class="fa-solid fa-phone text-emerald-400"></i> رقم تليفون العيادة *</label><input type="tel" id="tabEditClinicPhone" required placeholder="مثال: 01012345678" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-emerald-400 font-mono"></div>
                         <!-- 🔐 بيانات دخول الطبيب والسكرتيرة -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-amber-500/20 mt-2">
                             <div class="col-span-2"><p class="text-amber-400 font-black text-[11px] flex items-center gap-1"><i class="fa-solid fa-user-doctor"></i> بيانات دخول الطبيب:</p></div>
@@ -392,7 +407,7 @@
                 <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">رقم الهاتف *</label><input type="tel" id="bookPatientPhone" required placeholder="01xxxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">تاريخ الكشف *</label><input type="date" id="bookDate" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="إعادة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
+                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="استشارة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
                     <span class="text-slate-400">قيمة رسوم الكشف:</span>
@@ -427,7 +442,6 @@
     </div>
 
     <!-- CLINIC LOGIN MODAL -->
-    
     <div id="clinicLoginModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 w-full max-w-md rounded-3xl border border-amber-500/30 p-6 space-y-5 relative shadow-2xl">
             <button onclick="closeClinicLoginModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -436,17 +450,13 @@
                 <h3 class="text-lg font-black text-white">دخول العيادات والانتظار</h3>
                 <p class="text-xs text-slate-400">سجل دخولك بالطبيب أو السكرتيرة</p>
             </div>
-            <form onsubmit="handleClinicLogin(event)" autocomplete="off" id="loginFormMain">
-                <!-- حقول وهمية لخداع المتصفح -->
-                <input type="text" style="display:none" autocomplete="username">
-                <input type="password" style="display:none" autocomplete="new-password">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="text" inputmode="email" id="loginEmail" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" spellcheck="false" name="mawaed_no_save_email_xyz" required placeholder="doctor1@mawaed.com" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" name="mawaed_no_save_pass_xyz" required placeholder="••••••••" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition mt-4">تسجيل الدخول 🔓</button>
+            <form onsubmit="handleClinicLogin(event)" class="space-y-4">
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition">تسجيل الدخول 🔓</button>
             </form>
         </div>
     </div>
-
 
     <!-- MAP MODAL -->
     <div id="clinicMapModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -614,16 +624,16 @@
 
         /* DEFAULT DATA */
         const DEFAULT_CLINICS = [
-            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
-            { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
-            { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
-            { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
-            { id: 5, name: "عيادة الجلدية والتجميل", doctorName: "د. هبة العوضي", doctorImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555", secEmail: "sec5@mawaed.com", secPass: "sec555", price: 280, consultPrice: 100, icon: "fa-wand-magic-sparkles", schedule: "السبت والإثنين والخميس (3م - 9م)", address: "الدور الرابع - عمارة الشفاء - الميدان الرئيسي" },
-            { id: 6, name: "عيادة النساء والتوليد", doctorName: "د. رانيا طاهر", doctorImage: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666", secEmail: "sec6@mawaed.com", secPass: "sec666", price: 300, consultPrice: 150, icon: "fa-person-pregnant", schedule: "يومياً عدا الخميس والجمعة (4م - 9م)", address: "الدور الثاني - العيادات التخصصية - شارع الجمهورية" },
-            { id: 7, name: "عيادة العيون وجراحة الشبكيات", doctorName: "د. خالد عبد الرحمن", doctorImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777", secEmail: "sec7@mawaed.com", secPass: "sec777", price: 250, consultPrice: 100, icon: "fa-eye", schedule: "الأحد وثلاثاء والخميس (5م - 10م)", address: "الدور الثالث - مركز النور للبصريات" },
-            { id: 8, name: "عيادة الأنف والأذن والحنجرة", doctorName: "د. أسامة عبد الله", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888", secEmail: "sec8@mawaed.com", secPass: "sec888", price: 200, consultPrice: 80, icon: "fa-ear-listen", schedule: "يومياً (3ظ - 9م)", address: "الدور الأول - عمارة الأطباء - تقاطع النادي" },
-            { id: 9, name: "عيادة المخ والأعصاب", doctorName: "د. شريف توفيق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999", secEmail: "sec9@mawaed.com", secPass: "sec999", price: 350, consultPrice: 150, icon: "fa-brain", schedule: "السبت وثلاثاء (6م - 11م)", address: "الدور الخامس - البرج الطبي الحديث" },
-            { id: 10, name: "عيادة جراحة المسالك البولية", doctorName: "د. طارق مصطفى", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", phone: "0100000000", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010", secEmail: "sec10@mawaed.com", secPass: "sec1000", price: 250, consultPrice: 100, icon: "fa-hospital", schedule: "الإثنين والسبت (4م - 10م)", address: "الدور الثاني - المركز الشامل - بجوار بنك مصر" }
+            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
+            { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
+            { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
+            { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
+            { id: 5, name: "عيادة الجلدية والتجميل", doctorName: "د. هبة العوضي", doctorImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555", secEmail: "sec5@mawaed.com", secPass: "sec555", price: 280, consultPrice: 100, icon: "fa-wand-magic-sparkles", schedule: "السبت والإثنين والخميس (3م - 9م)", address: "الدور الرابع - عمارة الشفاء - الميدان الرئيسي" },
+            { id: 6, name: "عيادة النساء والتوليد", doctorName: "د. رانيا طاهر", doctorImage: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666", secEmail: "sec6@mawaed.com", secPass: "sec666", price: 300, consultPrice: 150, icon: "fa-person-pregnant", schedule: "يومياً عدا الخميس والجمعة (4م - 9م)", address: "الدور الثاني - العيادات التخصصية - شارع الجمهورية" },
+            { id: 7, name: "عيادة العيون وجراحة الشبكيات", doctorName: "د. خالد عبد الرحمن", doctorImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777", secEmail: "sec7@mawaed.com", secPass: "sec777", price: 250, consultPrice: 100, icon: "fa-eye", schedule: "الأحد وثلاثاء والخميس (5م - 10م)", address: "الدور الثالث - مركز النور للبصريات" },
+            { id: 8, name: "عيادة الأنف والأذن والحنجرة", doctorName: "د. أسامة عبد الله", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888", secEmail: "sec8@mawaed.com", secPass: "sec888", price: 200, consultPrice: 80, icon: "fa-ear-listen", schedule: "يومياً (3ظ - 9م)", address: "الدور الأول - عمارة الأطباء - تقاطع النادي" },
+            { id: 9, name: "عيادة المخ والأعصاب", doctorName: "د. شريف توفيق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999", secEmail: "sec9@mawaed.com", secPass: "sec999", price: 350, consultPrice: 150, icon: "fa-brain", schedule: "السبت وثلاثاء (6م - 11م)", address: "الدور الخامس - البرج الطبي الحديث" },
+            { id: 10, name: "عيادة جراحة المسالك البولية", doctorName: "د. طارق مصطفى", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010", secEmail: "sec10@mawaed.com", secPass: "sec1000", price: 250, consultPrice: 100, icon: "fa-hospital", schedule: "الإثنين والسبت (4م - 10م)", address: "الدور الثاني - المركز الشامل - بجوار بنك مصر" }
         ];
         const DEFAULT_CONTACT_INFO = { phone: "19000 / 01012345678", whatsapp: "201012345678", email: "support@mawaed-health.com", address: "برج المركز الطبي - الدور الخامس - القاهرة" };
 
@@ -902,29 +912,20 @@
             }
         };
 
-        
         window.logoutClinic = async function() {
-            try { await signOut(auth); } catch(e) {}
-            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) {}
+            try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
+            // إعادة الدخول كـ مريض مجهول
+            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
             loggedInClinicId = null;
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
-            localStorage.removeItem('mawaed_logged_clinic');
-            try{ sessionStorage.clear(); }catch(e){}
-            const e=document.getElementById('loginEmail'); const p=document.getElementById('loginPassword');
-            if(e){ e.value=''; e.setAttribute('value',''); e.setAttribute('autocomplete','off'); }
-            if(p){ p.value=''; p.setAttribute('value',''); p.setAttribute('autocomplete','new-password'); }
-            document.getElementById('loginFormMain')?.reset();
-            // اقفل اي autofill
-            document.querySelectorAll('input').forEach(inp=>{ if(inp.id==='loginEmail' || inp.id==='loginPassword'){ inp.value=''; }});
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
-            setTimeout(()=>{ const ee=document.getElementById('loginEmail'); const pp=document.getElementById('loginPassword'); if(ee) ee.value=''; if(pp) pp.value=''; }, 200);
         };
 
-window.showView = function(v) {
+        window.showView = function(v) {
             document.getElementById('viewPatientLanding').classList.add('hidden');
             document.getElementById('viewClinicDashboard').classList.add('hidden');
             if (v === 'patientLanding') { document.getElementById('viewPatientLanding').classList.remove('hidden'); renderClinicCards(); }
@@ -951,12 +952,11 @@ window.showView = function(v) {
                                 <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-14 h-14 rounded-2xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
                                 <div><span class="bg-teal-500/10 text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-teal-500/30"><i class="fa-solid ${c.icon || 'fa-user-doctor'} ml-1"></i> ${c.name}</span><h4 class="text-base font-extrabold text-white mt-1">${c.doctorName}</h4></div>
                             </div>
-                            <div class="flex flex-col gap-1 items-end"><span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[10px] font-black px-2 py-0.5 rounded-full whitespace-nowrap">كشف: ${c.price} ج.م</span><span class="bg-teal-500/10 text-teal-300 border border-teal-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">إعادة: ${c.consultPrice || Math.round(c.price*0.4)} ج.م</span></div>
+                            <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">${c.price} ج.م</span>
                         </div>
                         <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
                             <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
                             <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
-                            <p class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-400 text-[10px]"></i> <span dir="ltr">${c.phone || "—"}</span></p>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-700/60">
@@ -1004,12 +1004,7 @@ window.showView = function(v) {
             container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
                 const ip = inq.status === 'pending';
                 const cp = (inq.phone || '').replace(/[^0-9]/g, '');
-                const clinic = clinicsList.find(x=> Number(x.id)===Number(loggedInClinicId));
-            const clinicName = clinic ? clinic.name : 'عيادتنا';
-            const safeName = (inq.patientName||'').replace(/"/g,'');
-                let waPhone = cp;
-                if(waPhone.startsWith('0')) waPhone = '2' + waPhone;
-            return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
+                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
                         <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone}</p></div></div>
                         <div class="flex items-center gap-2"><span class="text-[10px] text-slate-500 font-mono">${inq.date} - ${inq.time || ''}</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
@@ -1028,25 +1023,6 @@ window.showView = function(v) {
                 </div>`;
             }).join('');
         }
-
-
-        window.replyWhatsApp = function(inqId, waPhone, patientName, clinicName){
-            const replyEl = document.getElementById('reply_'+inqId);
-            const customReply = replyEl ? replyEl.value.trim() : '';
-            if(!customReply){ window.showToast('اكتب الرد أولاً ✍️','✍️'); replyEl?.focus(); return; }
-            const welcome = `مرحبا ${patientName} 👋\nيسعدنا الرد على استفساراتكم من ${clinicName} 🌿\n\n`;
-            const fullMsg = welcome + customReply + `\n\nمع تحيات ${clinicName} - مواعيد دوت كوم 💙`;
-            const encoded = encodeURIComponent(fullMsg);
-            let finalPhone = waPhone || '';
-            if(finalPhone.startsWith('01')) finalPhone = '2' + finalPhone;
-            const url = `https://wa.me/${finalPhone}?text=${encoded}`;
-            window.open(url, '_blank');
-            const inq = inquiriesList.find(i=>i.id===inqId);
-            if(inq && inq.status==='pending'){ toggleInquiryStatus(inqId); }
-            window.showToast('تم فتح الواتساب بالرد ✅','💬');
-        };
-
-
 
         window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
         window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
@@ -1070,7 +1046,7 @@ window.showView = function(v) {
             if (!c) return;
             const type = document.getElementById('bookType').value;
             let fee = c.price;
-            if (type === 'إعادة') fee = c.consultPrice || Math.round(c.price * 0.4);
+            if (type === 'استشارة') fee = c.consultPrice || Math.round(c.price * 0.4);
             if (type === 'كشف مستعجل') fee = Math.round(c.price * 1.3);
             document.getElementById('bookFeeDisplay').innerText = fee + " ج.م";
         };
@@ -1143,9 +1119,9 @@ window.showView = function(v) {
         function populateSettingsTab() {
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c) return;
-            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress', 'tabEditClinicPhone'].forEach(id => {
+            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address, tabEditClinicPhone: c.phone || '' }[id];
+                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address }[id];
             });
             // عرض البريد الإلكتروني الحالي من Firebase Auth
             const emailDisplay = document.getElementById('currentEmailDisplay');
@@ -1228,7 +1204,6 @@ window.showView = function(v) {
                 consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
                 schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
                 address: document.getElementById('tabEditClinicAddress').value.trim(),
-                phone: document.getElementById('tabEditClinicPhone').value.trim(),
                 doctorEmail: document.getElementById('tabEditDoctorEmail').value.trim().toLowerCase(),
                 doctorPass: document.getElementById('tabEditDoctorPass').value.trim(),
                 secEmail: document.getElementById('tabEditSecEmail').value.trim().toLowerCase(),
@@ -1298,24 +1273,57 @@ window.showView = function(v) {
 
         function renderPendingRequestsTable() {
             autoExpireOldBookings();
-
-            const tbody = document.getElementById('pendingBookingsTbody');
-            if (!tbody || !loggedInClinicId) return;
-            console.log('🔍 فلترة الحجوزات لـ عيادة', loggedInClinicId, 'من اصل', bookingsList.length, bookingsList);
-            // عرض ID العيادة الحالية في العنوان للمساعدة في الديباج
-            const titleEl = document.querySelector('#subTabPending h3, #subTabPending h4');
-            if(titleEl && !titleEl.innerHTML.includes('ID:')){
-                titleEl.innerHTML += ` <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">ID: ${loggedInClinicId}</span>`;
-            }
-            const list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
+            const todayTbody = document.getElementById('pendingTodayTbody');
+            const waitingTbody = document.getElementById('pendingWaitingTbody');
+            const oldTbody = document.getElementById('pendingBookingsTbody');
+            if ((!todayTbody || !waitingTbody) && !oldTbody) return;
+            if (!loggedInClinicId) return;
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayLabel = document.getElementById('todayDateLabel');
+            if(todayLabel) todayLabel.innerText = new Date().toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
+            
+            let list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
+            const df = document.getElementById('filterPendingDate')?.value || '';
+            
             document.getElementById('badgePendingCount').innerText = list.length;
-            const df = document.getElementById('filterPendingDate').value;
-            const display = df ? list.filter(b => b.date === df) : list;
-            if (display.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد طلبات حجز معلقة حالياً.</td></tr>`; return; }
-            tbody.innerHTML = display.map(b => `
+            
+            // فلترة حسب التاريخ لو المستخدم اختار تاريخ
+            let filteredForDisplay = df ? list.filter(b => b.date === df) : list;
+            
+            // قسم لليوم والمنتظر
+            let todays = filteredForDisplay.filter(b => b.date === todayStr);
+            let waiting = filteredForDisplay.filter(b => b.date !== todayStr);
+            
+            // لو فيه فلتر تاريخ = اليوم، خلي كله في اليوم
+            if(df === todayStr){
+                todays = filteredForDisplay;
+                waiting = [];
+            } else if(df && df !== todayStr){
+                // لو فلتر تاريخ مستقبلي، خليه كله منتظر
+                todays = [];
+                waiting = filteredForDisplay;
+            }
+            
+            if(document.getElementById('badgeTodayCount')) document.getElementById('badgeTodayCount').innerText = todays.length;
+            if(document.getElementById('badgeWaitingCount')) document.getElementById('badgeWaitingCount').innerText = waiting.length;
+            
+            const rowToday = (b) => `
+                <tr class="hover:bg-blue-900/20 border-b border-slate-800 transition bg-blue-500/5">
+                    <td class="p-3 font-mono font-bold text-blue-300">${b.refCode}</td>
+                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span><span class="block text-[10px] text-amber-300/80"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
+                    <td class="p-3 font-mono">${b.phone}</td>
+                    <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
+                    <td class="p-3 text-center flex justify-center gap-2">
+                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
+                        <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+                    </td>
+                </tr>`;
+            
+            const rowWaiting = (b) => `
                 <tr class="hover:bg-slate-800/60 border-b border-slate-800 transition">
                     <td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td>
-                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد عنوان'}</span><span class="block text-[10px] text-amber-300/80 font-normal"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
+                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
                     <td class="p-3 font-bold text-teal-300">${b.date}</td>
                     <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
@@ -1323,7 +1331,11 @@ window.showView = function(v) {
                         <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
                         <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+
+            if(todayTbody) todayTbody.innerHTML = todays.length ? todays.map(rowToday).join('') : `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات اليوم - ${todayStr}</td></tr>`;
+            if(waitingTbody) waitingTbody.innerHTML = waiting.length ? waiting.map(rowWaiting).join('') : `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات منتظرة</td></tr>`;
+            if(oldTbody) oldTbody.innerHTML = '';
         }
 
         window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
@@ -1419,8 +1431,8 @@ window.showView = function(v) {
         }
 
         function renderFinanceTab() {
-            const cb = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && ['approved','completed'].includes(b.status));
-            const rev = cb.reduce((s, b) => s + (parseInt(b.fee) || 0), 0); // الايراد فقط عند الاعتماد
+            const cb = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status !== 'cancelled');
+            const rev = cb.reduce((s, b) => s + (parseInt(b.fee) || 0), 0);
             const ce = expensesList.filter(e => Number(e.clinicId) === Number(loggedInClinicId));
             const exp = ce.reduce((s, e) => s + Number(e.amount || 0), 0);
             document.getElementById('finTotalRevenue').innerText = rev + " ج.م";
