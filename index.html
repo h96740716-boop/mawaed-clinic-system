@@ -154,25 +154,26 @@
                 <button onclick="switchSubTab('settings')" id="tabBtnSettings" class="subtab-btn bg-slate-800 text-amber-300 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-amber-500/30"><i class="fa-solid fa-sliders"></i><span>تعديل العيادة والجدول</span></button>
             </div>
 
-            <!-- PENDING - مقسم لليوم والمنتظر -->
+            <!-- PENDING - مقسم: اليوم والمنتظرة -->
             <div id="subTabPending" class="subtab-content space-y-6">
                 <!-- طلبات اليوم -->
-                <div class="bg-gradient-to-r from-blue-900/30 via-slate-800/80 to-slate-800/80 p-5 rounded-2xl border border-blue-500/40 space-y-3 shadow-lg">
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-blue-500/40 space-y-4">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-sm font-black text-blue-300 flex items-center gap-2"><i class="fa-solid fa-calendar-day"></i><span>📅 طلبات اليوم</span><span id="badgeTodayCount" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full text-[11px]">0</span></h4>
-                        <span class="text-[10px] text-slate-400" id="todayDateLabel"></span>
+                        <h4 class="text-sm font-black text-blue-400 flex items-center gap-2"><i class="fa-solid fa-calendar-day"></i><span>طلبات اليوم</span><span id="badgeTodayCount" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full text-[10px]">0</span><span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full" id="todayDateBadge"></span></h4>
+                        <span class="text-[10px] text-slate-400">اليوم: <span id="todayDateText" class="text-blue-300 font-bold"></span></span>
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-blue-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض</th><th class="p-3">الهاتف</th><th class="p-3">النوع / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <thead class="bg-slate-900 text-blue-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">النوع / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
                             <tbody id="pendingTodayTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
                 </div>
+
                 <!-- الطلبات المنتظرة -->
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-amber-500/30 space-y-4">
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-amber-500/40 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h4 class="text-sm font-bold text-amber-300 flex items-center gap-2"><i class="fa-solid fa-clock"></i><span>⏳ الطلبات المنتظرة (أيام قادمة)</span><span id="badgeWaitingCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-[11px]">0</span></h4>
+                        <h4 class="text-sm font-black text-amber-400 flex items-center gap-2"><i class="fa-solid fa-clock"></i><span>الطلبات المنتظرة (أيام قادمة)</span><span id="badgeWaitingCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px]">0</span></h4>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <input type="date" id="filterPendingDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 rounded-xl text-xs px-3 py-1.5 text-white">
                             <button onclick="clearPendingDateFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-xl font-bold">عرض الكل</button>
@@ -180,11 +181,12 @@
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-amber-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <thead class="bg-slate-900 text-amber-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">النوع</th><th class="p-3 text-center">الإجراء</th></tr></thead>
                             <tbody id="pendingWaitingTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
                 </div>
+
                 <!-- مخفي للتوافق -->
                 <table class="hidden"><tbody id="pendingBookingsTbody"></tbody></table>
             </div>
@@ -235,12 +237,29 @@
                 </div>
             </div>
 
-            <!-- INQUIRIES -->
-            <div id="subTabInquiries" class="subtab-content hidden space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2 border-b border-slate-700 pb-3"><i class="fa-solid fa-comments text-amber-400"></i><span>استفسارات المرضى الواردة (تصل فوراً)</span></h4>
-                    <div id="inquiriesContainer" class="space-y-3"></div>
+            <!-- INQUIRIES - مقسم: اليوم والمنتظرة + حذف تلقائي بعد يوم -->
+            <div id="subTabInquiries" class="subtab-content hidden space-y-6">
+                <!-- استفسارات اليوم -->
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-blue-500/30 space-y-3">
+                    <h4 class="text-sm font-black text-blue-400 flex items-center gap-2 border-b border-slate-700 pb-3">
+                        <i class="fa-solid fa-calendar-day"></i><span>استفسارات اليوم</span>
+                        <span id="badgeInqTodayCount" class="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                        <span class="text-[10px] text-slate-400 font-normal">تُحذف تلقائياً بعد 24 ساعة</span>
+                    </h4>
+                    <div id="inquiriesTodayContainer" class="space-y-3"></div>
                 </div>
+
+                <!-- استفسارات منتظرة / سابقة -->
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-amber-500/20 space-y-3">
+                    <h4 class="text-sm font-black text-amber-400 flex items-center gap-2 border-b border-slate-700 pb-3">
+                        <i class="fa-solid fa-clock-rotate-left"></i><span>استفسارات منتظرة / سابقة</span>
+                        <span id="badgeInqWaitingCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px]">0</span>
+                    </h4>
+                    <div id="inquiriesWaitingContainer" class="space-y-3"></div>
+                </div>
+
+                <!-- مخفي للتوافق -->
+                <div id="inquiriesContainer" class="hidden"></div>
             </div>
 
             <!-- PRESCRIPTION -->
@@ -982,7 +1001,18 @@
            ================================================================ */
         window.handleInquirySubmit = async function(e) {
             e.preventDefault();
-            const newInq = { id: Date.now(), clinicId: Number(document.getElementById('inquiryClinicId').value), patientName: document.getElementById('inquiryPatientName').value.trim(), phone: document.getElementById('inquiryPatientPhone').value.trim(), message: document.getElementById('inquiryMessage').value.trim(), status: 'pending', date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) };
+            const newInq = { 
+                id: Date.now(), 
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                clinicId: Number(document.getElementById('inquiryClinicId').value), 
+                patientName: document.getElementById('inquiryPatientName').value.trim(), 
+                phone: document.getElementById('inquiryPatientPhone').value.trim(), 
+                message: document.getElementById('inquiryMessage').value.trim(), 
+                status: 'pending', 
+                date: new Date().toISOString().split('T')[0], 
+                time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) 
+            };
             try {
                 if (!currentUser) throw new Error("Not authenticated");
                 await setDoc(getPublicDoc('inquiries', newInq.id), newInq);
@@ -995,19 +1025,70 @@
         };
 
         function renderInquiriesList() {
-            const container = document.getElementById('inquiriesContainer');
-            if (!container || !loggedInClinicId) return;
-            const ci = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
+            const todayCont = document.getElementById('inquiriesTodayContainer');
+            const waitingCont = document.getElementById('inquiriesWaitingContainer');
+            const oldCont = document.getElementById('inquiriesContainer');
+            if ((!todayCont || !waitingCont) && !oldCont) return;
+            if (!loggedInClinicId) return;
+
+            const now = Date.now();
+            const ONE_DAY = 24 * 60 * 60 * 1000;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            let valid = [];
+            let toDelete = [];
+
+            inquiriesList.forEach(inq => {
+                if (Number(inq.clinicId) !== Number(loggedInClinicId)) return;
+
+                // حساب عمر الاستفسار
+                let createdTime = inq.timestamp || inq.createdAt ? new Date(inq.createdAt).getTime() : inq.id;
+                // لو التاريخ نصي فقط، حاول نحسبه
+                if (isNaN(createdTime) || !inq.timestamp && !inq.createdAt) {
+                    try { createdTime = new Date(inq.date + ' ' + (inq.time || '00:00')).getTime(); } catch(e){ createdTime = inq.id; }
+                }
+
+                const age = now - createdTime;
+                if (age > ONE_DAY) {
+                    toDelete.push(inq);
+                } else {
+                    // احسب الوقت المتبقي
+                    inq._remainingMs = ONE_DAY - age;
+                    valid.push(inq);
+                }
+            });
+
+            // احذف المنتهي من فايربيز (في الخلفية)
+            toDelete.forEach(inq => {
+                console.log('🗑️ حذف استفسار منتهي بعد 24ساعة:', inq.id);
+                if (currentUser) {
+                    try { deleteDoc(getPublicDoc('inquiries', String(inq.id))).catch(()=>{}); } catch(e){}
+                }
+            });
+
+            // تحديث العدادات
             const badge = document.getElementById('badgeInquiriesCount');
-            if (badge) badge.innerText = ci.filter(i => i.status === 'pending').length;
-            if (ci.length === 0) { container.innerHTML = `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا توجد رسائل أو استفسارات حالياً.</p>`; return; }
-            container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
+            if (badge) badge.innerText = valid.length;
+
+            const todays = valid.filter(i => (i.date || '').startsWith(todayStr));
+            const waiting = valid.filter(i => !(i.date || '').startsWith(todayStr));
+
+            const todayBadge = document.getElementById('badgeInqTodayCount');
+            const waitingBadge = document.getElementById('badgeInqWaitingCount');
+            if (todayBadge) todayBadge.innerText = todays.length;
+            if (waitingBadge) waitingBadge.innerText = waiting.length;
+
+            const cardHtml = (inq, isToday) => {
                 const ip = inq.status === 'pending';
                 const cp = (inq.phone || '').replace(/[^0-9]/g, '');
-                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
+                const rem = inq._remainingMs || ONE_DAY;
+                const remH = Math.floor(rem / (1000*60*60));
+                const remM = Math.floor((rem % (1000*60*60)) / (1000*60));
+
+                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? (isToday ? 'border-blue-500/40' : 'border-amber-500/30') : 'border-slate-800'} space-y-3 ${isToday ? 'bg-blue-900/10' : ''}">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
-                        <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone}</p></div></div>
-                        <div class="flex items-center gap-2"><span class="text-[10px] text-slate-500 font-mono">${inq.date} - ${inq.time || ''}</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
+                        <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone} • ${inq.date} ${inq.time || ''}</p></div></div>
+                        <div class="flex items-center gap-2"><span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700">متبقي ${remH}س ${remM}د</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
                     </div>
                     <p class="text-xs text-slate-200 leading-relaxed pr-2 font-medium bg-slate-800/50 p-3 rounded-xl border border-slate-800">"${inq.message}"</p>
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
@@ -1021,7 +1102,11 @@
                         </div>
                     </div>
                 </div>`;
-            }).join('');
+            };
+
+            if (todayCont) todayCont.innerHTML = todays.length ? todays.sort((a,b)=>b.id-a.id).map(i=>cardHtml(i,true)).join('') : `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا يوجد استفسارات اليوم 🎉</p>`;
+            if (waitingCont) waitingCont.innerHTML = waiting.length ? waiting.sort((a,b)=>b.id-a.id).map(i=>cardHtml(i,false)).join('') : `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا يوجد استفسارات سابقة</p>`;
+            if (oldCont) oldCont.innerHTML = '';
         }
 
         window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
@@ -1273,68 +1358,81 @@
 
         function renderPendingRequestsTable() {
             autoExpireOldBookings();
+
             const todayTbody = document.getElementById('pendingTodayTbody');
             const waitingTbody = document.getElementById('pendingWaitingTbody');
             const oldTbody = document.getElementById('pendingBookingsTbody');
             if ((!todayTbody || !waitingTbody) && !oldTbody) return;
             if (!loggedInClinicId) return;
-            
+
             const todayStr = new Date().toISOString().split('T')[0];
-            const todayLabel = document.getElementById('todayDateLabel');
-            if(todayLabel) todayLabel.innerText = new Date().toLocaleDateString('ar-EG', {weekday:'long', day:'numeric', month:'long'});
-            
+            const todayTextEl = document.getElementById('todayDateText');
+            const todayBadge = document.getElementById('todayDateBadge');
+            if (todayTextEl) todayTextEl.innerText = todayStr;
+            if (todayBadge) todayBadge.innerText = `ID: ${loggedInClinicId} | ${todayStr}`;
+
             let list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
-            const df = document.getElementById('filterPendingDate')?.value || '';
             
-            document.getElementById('badgePendingCount').innerText = list.length;
-            
-            // فلترة حسب التاريخ لو المستخدم اختار تاريخ
-            let filteredForDisplay = df ? list.filter(b => b.date === df) : list;
-            
-            // قسم لليوم والمنتظر
-            let todays = filteredForDisplay.filter(b => b.date === todayStr);
-            let waiting = filteredForDisplay.filter(b => b.date !== todayStr);
-            
-            // لو فيه فلتر تاريخ = اليوم، خلي كله في اليوم
-            if(df === todayStr){
-                todays = filteredForDisplay;
-                waiting = [];
-            } else if(df && df !== todayStr){
-                // لو فلتر تاريخ مستقبلي، خليه كله منتظر
-                todays = [];
-                waiting = filteredForDisplay;
+            // إجمالي
+            const totalBadge = document.getElementById('badgePendingCount');
+            if(totalBadge) totalBadge.innerText = list.length;
+
+            const df = document.getElementById('filterPendingDate').value;
+            let todays = list.filter(b => (b.date || '').startsWith(todayStr));
+            let waiting = list.filter(b => !(b.date || '').startsWith(todayStr));
+
+            if (df) {
+                // لو في فلتر تاريخ، نطبقه على القسمين
+                todays = todays.filter(b => b.date === df);
+                waiting = waiting.filter(b => b.date === df);
+                // لو الفلتر هو اليوم، كل النتائج تروح لليوم
+                if (df === todayStr) {
+                    todays = list.filter(b => b.date === df);
+                    waiting = [];
+                } else if (df !== todayStr) {
+                    // لو الفلتر مش اليوم، كل النتائج منتظرة
+                    waiting = list.filter(b => b.date === df);
+                    todays = [];
+                }
             }
-            
-            if(document.getElementById('badgeTodayCount')) document.getElementById('badgeTodayCount').innerText = todays.length;
-            if(document.getElementById('badgeWaitingCount')) document.getElementById('badgeWaitingCount').innerText = waiting.length;
-            
+
+            document.getElementById('badgeTodayCount').innerText = todays.length;
+            document.getElementById('badgeWaitingCount').innerText = waiting.length;
+
             const rowToday = (b) => `
                 <tr class="hover:bg-blue-900/20 border-b border-slate-800 transition bg-blue-500/5">
-                    <td class="p-3 font-mono font-bold text-blue-300">${b.refCode}</td>
-                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span><span class="block text-[10px] text-amber-300/80"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
+                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || b.id}</td>
+                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span><span class="block text-[10px] text-amber-300/80 font-normal"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
-                    <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
+                    <td class="p-3">${b.type || 'عادي'} <span class="text-amber-300 font-bold">(${b.fee || ''})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
-                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
+                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> قبول</button>
                         <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
                     </td>
                 </tr>`;
-            
+
             const rowWaiting = (b) => `
                 <tr class="hover:bg-slate-800/60 border-b border-slate-800 transition">
-                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td>
-                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span></td>
+                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || b.id}</td>
+                    <td class="p-3 font-bold text-white">${b.patientName} <span class="text-slate-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
                     <td class="p-3 font-bold text-teal-300">${b.date}</td>
-                    <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
+                    <td class="p-3">${b.type || 'عادي'} <span class="text-amber-300 font-bold">(${b.fee || ''})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
                         <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
                         <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
                     </td>
                 </tr>`;
 
-            if(todayTbody) todayTbody.innerHTML = todays.length ? todays.map(rowToday).join('') : `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات اليوم - ${todayStr}</td></tr>`;
-            if(waitingTbody) waitingTbody.innerHTML = waiting.length ? waiting.map(rowWaiting).join('') : `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات منتظرة</td></tr>`;
+            if (todayTbody) {
+                if (todays.length === 0) { todayTbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات اليوم (${todayStr})</td></tr>`; }
+                else { todayTbody.innerHTML = todays.map(rowToday).join(''); }
+            }
+            if (waitingTbody) {
+                if (waiting.length === 0) { waitingTbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا يوجد طلبات منتظرة.</td></tr>`; }
+                else { waitingTbody.innerHTML = waiting.map(rowWaiting).join(''); }
+            }
+            // للتوافق مع الكود القديم
             if(oldTbody) oldTbody.innerHTML = '';
         }
 
