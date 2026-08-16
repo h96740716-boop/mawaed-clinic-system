@@ -697,11 +697,15 @@
                 // ================================================================
                 const RECAPTCHA_SITE_KEY = '6LduFIktAAAAABdrzQgEIfQb8UPUYe104pGbFPMA';
                 if (RECAPTCHA_SITE_KEY !== 'YOUR_RECAPTCHA_SITE_KEY_HERE') {
-                    initializeAppCheck(app, {
-                        provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
-                        isTokenAutoRefreshEnabled: true
-                    });
-                    console.log('✅ Firebase App Check مفعّل');
+                    try {
+                        initializeAppCheck(app, {
+                            provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
+                            isTokenAutoRefreshEnabled: true
+                        });
+                        console.log('✅ Firebase App Check مفعّل');
+                    } catch(acErr) {
+                        console.warn('⚠️ App Check init warning (non-blocking):', acErr.message);
+                    }
                 }
 
                 auth = getAuth(app);
