@@ -596,7 +596,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ================================================================
         // ⚠️ FIX #1 — ضع Firebase Config الحقيقي هنا
@@ -1204,8 +1204,11 @@
             if (btn) { btn.disabled = true; btn.textContent = 'جارِ الإرسال... ⏳'; }
 
             const refCode = "MW-" + Math.floor(10000 + Math.random() * 90000);
+            // توليد ID فريد مستحيل يتكرر حتى لو 1000 واحد حجزوا في نفس الثانية
+            const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2,10)}_${Math.random().toString(36).substring(2,6)}_${(typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().substring(0,8) : Math.floor(Math.random()*1e8))}`;
             const newBooking = {
-                id: Date.now(),
+                id: uniqueId,
+                idNumeric: Date.now(), // للترتيب الزمني
                 refCode,
                 clinicId: Number(selectedBookingClinicId || document.getElementById('bookingClinicId').value),
                 patientName: document.getElementById('bookPatientName').value.trim(),
@@ -1218,7 +1221,10 @@
                 fee: document.getElementById('bookFeeDisplay').innerText,
                 status: 'pending',
                 queueNumber: null,
-                createdAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+                createdAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                createdAtISO: new Date().toISOString(),
+                timestamp: Date.now(),
+                serverTimestamp: null // سيتم ملؤه من السيرفر
             };
 
             // === منع التكرار: نفس الاسم أو نفس رقم التليفون في نفس اليوم لنفس العيادة ===
@@ -1481,26 +1487,26 @@
 
             const rowToday = (b) => `
                 <tr class="hover:bg-blue-900/20 border-b border-slate-800 transition bg-blue-500/5">
-                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || b.id}</td>
+                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || String(b.id).substring(0,8)}</td>
                     <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد'}</span><span class="block text-[10px] text-amber-300/80 font-normal"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
                     <td class="p-3">${b.type || 'عادي'} <span class="text-amber-300 font-bold">(${b.fee || ''})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
-                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> قبول</button>
-                        <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="approveBooking('${b.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> قبول</button>
+                        <button onclick="cancelBooking('${b.id}')" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
                     </td>
                 </tr>`;
 
             const rowWaiting = (b) => `
                 <tr class="hover:bg-slate-800/60 border-b border-slate-800 transition">
-                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || b.id}</td>
+                    <td class="p-3 font-mono font-bold text-amber-400">${b.refCode || String(b.id).substring(0,8)}</td>
                     <td class="p-3 font-bold text-white">${b.patientName} <span class="text-slate-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
                     <td class="p-3 font-bold text-teal-300">${b.date}</td>
                     <td class="p-3">${b.type || 'عادي'} <span class="text-amber-300 font-bold">(${b.fee || ''})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
-                        <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
-                        <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="approveBooking('${b.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
+                        <button onclick="cancelBooking('${b.id}')" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
                     </td>
                 </tr>`;
 
@@ -1517,8 +1523,46 @@
         }
 
         window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
-        window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await updateDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error(err); window.showToast('❌ فشل الاعتماد!', '❌'); } };
-        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', id), { status: 'cancelled' }); } catch (e) { console.error(e); } };
+        window.approveBooking = async function(id) { 
+            const b = bookingsList.find(x => String(x.id) === String(id)); 
+            if (!b || !currentUser) return; 
+            try {
+                // حل التعارض: استخدم Transaction مع عداد ذري لكل عيادة/يوم
+                const counterId = `${b.clinicId}_${b.date}`;
+                const counterRef = getPublicDoc('counters', counterId);
+                const bookingRef = getPublicDoc('bookings', String(id));
+
+                const queueNum = await runTransaction(db, async (transaction) => {
+                    const counterSnap = await transaction.get(counterRef);
+                    let nextNum = 1;
+                    if (counterSnap.exists()) {
+                        // احسب من العداد المحفوظ
+                        nextNum = (counterSnap.data().nextQueue || 1);
+                    } else {
+                        // اول مرة: احسب من الحجوزات الحالية المعتمدة
+                        const existingApproved = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending','cancelled','expired'].includes(x.status)).length;
+                        nextNum = existingApproved + 1;
+                    }
+                    // تحديث الحجز والعداد ذرياً
+                    transaction.set(bookingRef, { status: 'approved', queueNumber: nextNum, approvedAt: new Date().toISOString() }, { merge: true });
+                    transaction.set(counterRef, { clinicId: Number(b.clinicId), date: b.date, nextQueue: nextNum + 1, lastUpdated: serverTimestamp() }, { merge: true });
+                    return nextNum;
+                });
+
+                window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${queueNum}) ✅`, '✅'); 
+            } catch (err) { 
+                console.error(err); 
+                // fallback لو فشل الـ transaction (مثلاً قواعد قديمة)
+                try {
+                    const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled','expired'].includes(x.status)).length + 1;
+                    await updateDoc(getPublicDoc('bookings', String(id)), { status: 'approved', queueNumber: q });
+                    window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅');
+                } catch(e2){
+                    window.showToast('❌ فشل الاعتماد! ' + (err.message||''), '❌');
+                }
+            } 
+        };
+        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', String(id)), { status: 'cancelled' }); } catch (e) { console.error(e); } };
         window.addDrugToRx = function() { const n = document.getElementById('rxDrugName').value.trim(); if (!n) { window.showToast('يرجى كتابة اسم الدواء.', '⚠️'); return; } currentRxDrugs.push({ name: n, dose: document.getElementById('rxDrugDose').value.trim() || 'حسب الإرشادات' }); document.getElementById('rxDrugName').value = ''; document.getElementById('rxDrugDose').value = ''; renderRxDrugsList(); };
         function renderRxDrugsList() { const c = document.getElementById('rxDrugsContainer'); if (!c) return; if (!currentRxDrugs.length) { c.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية.</p>`; return; } c.innerHTML = currentRxDrugs.map((d, i) => `<div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-xs"><div><span class="font-extrabold text-amber-400">${i + 1}. ${d.name}</span><span class="text-slate-400 font-bold block text-[11px]">${d.dose}</span></div><button onclick="removeDrugFromRx(${i})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
         window.removeDrugFromRx = (i) => { currentRxDrugs.splice(i, 1); renderRxDrugsList(); };
@@ -1590,7 +1634,7 @@
                     <td class="p-3 font-bold text-teal-300">${b.status === 'approved' ? 'بالانتظار ⏳' : 'تم الكشف ✅'}</td>
                     <td class="p-3 text-center flex items-center justify-center gap-2">
                         <button onclick="callSpecificTurn(${b.queueNumber}, '${b.patientName}')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-xl text-xs"><i class="fa-solid fa-bullhorn"></i> نداء</button>
-                        <button onclick="toggleQueueCompleted(${b.id})" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1 rounded-xl text-xs">${b.status === 'approved' ? 'تم الفحص' : 'إعادة'}</button>
+                        <button onclick="toggleQueueCompleted('${b.id}')" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-1 rounded-xl text-xs">${b.status === 'approved' ? 'تم الفحص' : 'إعادة'}</button>
                     </td>
                 </tr>`; }).join('');
         }
@@ -1598,7 +1642,7 @@
         window.advanceQueueTurn = async function(d) { const today = new Date().toISOString().split('T')[0]; const n = Math.max(1, getActiveCurrentTurn(loggedInClinicId, today) + d); await setActiveCurrentTurn(loggedInClinicId, today, n); const mp = bookingsList.find(b => Number(b.clinicId) === Number(loggedInClinicId) && b.date === today && Number(b.queueNumber) === n); speakQueueAnnouncement(n, mp?.patientName || ''); window.showToast(`الدور الحالي: #${n}`, '🔊'); };
         window.callSpecificTurn = async (n, name) => { const today = new Date().toISOString().split('T')[0]; await setActiveCurrentTurn(loggedInClinicId, today, n); speakQueueAnnouncement(n, name); window.showToast(`نداء على الدور #${n}`, '🔊'); };
         window.repeatCurrentAudio = function() { const today = new Date().toISOString().split('T')[0]; const n = getActiveCurrentTurn(loggedInClinicId, today); const mp = bookingsList.find(b => Number(b.clinicId) === Number(loggedInClinicId) && b.date === today && Number(b.queueNumber) === n); speakQueueAnnouncement(n, mp?.patientName || ''); };
-        window.toggleQueueCompleted = async (id) => { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; try { await updateDoc(getPublicDoc('bookings', id), { status: b.status === 'approved' ? 'completed' : 'approved' }); } catch (e) { console.error(e); } };
+        window.toggleQueueCompleted = async (id) => { const b = bookingsList.find(x => String(x.id) === String(id)); if (!b || !currentUser) return; try { await updateDoc(getPublicDoc('bookings', String(id)), { status: b.status === 'approved' ? 'completed' : 'approved' }); } catch (e) { console.error(e); } };
 
         function renderApprovedBookingsTable() {
             const tbody = document.getElementById('approvedBookingsTbody');
