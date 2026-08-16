@@ -1221,6 +1221,27 @@
                 createdAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
             };
 
+            // === منع التكرار: نفس الاسم أو نفس رقم التليفون في نفس اليوم لنفس العيادة ===
+            const normPhone = newBooking.phone.replace(/\D/g,'').slice(-11); // آخر 11 رقم
+            const normName = newBooking.patientName.trim().toLowerCase();
+            const duplicate = bookingsList.find(b => {
+                if (Number(b.clinicId) !== Number(newBooking.clinicId)) return false;
+                if (b.date !== newBooking.date) return false;
+                if (['cancelled','expired'].includes(b.status)) return false; // الملغي لا يحسب
+                const bPhone = (b.phone || '').replace(/\D/g,'').slice(-11);
+                const bName = (b.patientName || '').trim().toLowerCase();
+                const samePhone = bPhone && normPhone && bPhone === normPhone;
+                const sameName = bName && normName && bName === normName;
+                return samePhone || sameName;
+            });
+
+            if (duplicate) {
+                const reason = (duplicate.phone || '').replace(/\D/g,'').slice(-11) === normPhone ? `رقم التليفون (${newBooking.phone})` : `اسم المريض (${newBooking.patientName})`;
+                window.showToast(`⚠️ ممنوع التكرار! ${reason} محجوز بالفعل في نفس اليوم (${newBooking.date}) في نفس العيادة. كود الحجز السابق: ${duplicate.refCode || duplicate.id}`, '⛔');
+                if (btn) { btn.disabled = false; btn.textContent = 'تأكيد وإرسال طلب الحجز 🚀'; }
+                return;
+            }
+
             // احفظ نسخة محلية فوراً كـ backup
             try{
                 const localBookings = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
