@@ -350,9 +350,10 @@
                             <div><label class="text-slate-300 font-bold block mb-1">اسم الطبيب *</label><input type="text" id="tabEditDoctorName" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">سعر الإعادة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1"><i class="fa-solid fa-phone ml-1 text-emerald-400"></i> رقم تليفون العيادة *</label><input type="tel" id="tabEditClinicPhone" required placeholder="01012345678" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
@@ -426,7 +427,7 @@
                 <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">رقم الهاتف *</label><input type="tel" id="bookPatientPhone" required placeholder="01xxxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">تاريخ الكشف *</label><input type="date" id="bookDate" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"></div>
-                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="استشارة">استشارة / إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
+                    <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">نوع الكشف</label><select id="bookType" onchange="updateBookingFeeDisplay()" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"><option value="كشف عادي">كشف عادي</option><option value="إعادة">إعادة</option><option value="كشف مستعجل">كشف مستعجل</option></select></div>
                 </div>
                 <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/60 flex justify-between items-center text-xs">
                     <span class="text-slate-400">قيمة رسوم الكشف:</span>
@@ -469,9 +470,12 @@
                 <h3 class="text-lg font-black text-white">دخول العيادات والانتظار</h3>
                 <p class="text-xs text-slate-400">سجل دخولك بالطبيب أو السكرتيرة</p>
             </div>
-            <form onsubmit="handleClinicLogin(event)" class="space-y-4">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+            <!-- حقل وهمي لخداع المتصفح ومنع الحفظ -->
+            <input type="text" style="display:none" autocomplete="username">
+            <input type="password" style="display:none" autocomplete="new-password">
+            <form onsubmit="handleClinicLogin(event)" class="space-y-4" autocomplete="off" data-lpignore="true">
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="text" inputmode="email" id="loginEmail" name="mawaed_no_save_email_xyz" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" name="mawaed_no_save_pass_xyz" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" readonly onfocus="this.removeAttribute('readonly');" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition">تسجيل الدخول 🔓</button>
             </form>
         </div>
@@ -641,18 +645,18 @@
             txt.textContent = tc;
         }
 
-        /* DEFAULT DATA */
+                /* DEFAULT DATA */
         const DEFAULT_CLINICS = [
-            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
-            { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
-            { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
-            { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
-            { id: 5, name: "عيادة الجلدية والتجميل", doctorName: "د. هبة العوضي", doctorImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555", secEmail: "sec5@mawaed.com", secPass: "sec555", price: 280, consultPrice: 100, icon: "fa-wand-magic-sparkles", schedule: "السبت والإثنين والخميس (3م - 9م)", address: "الدور الرابع - عمارة الشفاء - الميدان الرئيسي" },
-            { id: 6, name: "عيادة النساء والتوليد", doctorName: "د. رانيا طاهر", doctorImage: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666", secEmail: "sec6@mawaed.com", secPass: "sec666", price: 300, consultPrice: 150, icon: "fa-person-pregnant", schedule: "يومياً عدا الخميس والجمعة (4م - 9م)", address: "الدور الثاني - العيادات التخصصية - شارع الجمهورية" },
-            { id: 7, name: "عيادة العيون وجراحة الشبكيات", doctorName: "د. خالد عبد الرحمن", doctorImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777", secEmail: "sec7@mawaed.com", secPass: "sec777", price: 250, consultPrice: 100, icon: "fa-eye", schedule: "الأحد وثلاثاء والخميس (5م - 10م)", address: "الدور الثالث - مركز النور للبصريات" },
-            { id: 8, name: "عيادة الأنف والأذن والحنجرة", doctorName: "د. أسامة عبد الله", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888", secEmail: "sec8@mawaed.com", secPass: "sec888", price: 200, consultPrice: 80, icon: "fa-ear-listen", schedule: "يومياً (3ظ - 9م)", address: "الدور الأول - عمارة الأطباء - تقاطع النادي" },
-            { id: 9, name: "عيادة المخ والأعصاب", doctorName: "د. شريف توفيق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999", secEmail: "sec9@mawaed.com", secPass: "sec999", price: 350, consultPrice: 150, icon: "fa-brain", schedule: "السبت وثلاثاء (6م - 11م)", address: "الدور الخامس - البرج الطبي الحديث" },
-            { id: 10, name: "عيادة جراحة المسالك البولية", doctorName: "د. طارق مصطفى", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010", secEmail: "sec10@mawaed.com", secPass: "sec1000", price: 250, consultPrice: 100, icon: "fa-hospital", schedule: "الإثنين والسبت (4م - 10م)", address: "الدور الثاني - المركز الشامل - بجوار بنك مصر" }
+            { id: 1, name: "عيادة الباطنة والقلب", doctorName: "د. علي حسن", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor1@mawaed.com", doctorPass: "111111", secEmail: "sec1@mawaed.com", secPass: "sec111", price: 250, consultPrice: 100, phone: "01012345671", clinicPhone: "01012345671", icon: "fa-heart-pulse", schedule: "السبت إلى الأربعاء (4م - 10م)", address: "الدور الثاني - عمارة الأطباء - شارع الثورة" },
+            { id: 2, name: "عيادة الأطفال وحديثي الولادة", doctorName: "د. سارة محمود", doctorImage: "https://images.unsplash.com/photo-1594824813566-7885a3964670?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor2@mawaed.com", doctorPass: "222222", secEmail: "sec2@mawaed.com", secPass: "sec222", price: 200, consultPrice: 80, phone: "01012345672", clinicPhone: "01012345672", icon: "fa-baby", schedule: "يومياً عدا الجمعة (2ظ - 8م)", address: "الدور الأول - المركز الطبي - بجوار مستشفى الأطفال" },
+            { id: 3, name: "عيادة العظام والجراحة", doctorName: "د. محمد فاروق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor3@mawaed.com", doctorPass: "333333", secEmail: "sec3@mawaed.com", secPass: "sec333", price: 300, consultPrice: 120, phone: "01012345673", clinicPhone: "01012345673", icon: "fa-bone", schedule: "الأحد والأربعاء (5م - 11م)", address: "الدور الثالث - البرج الطبي - شارع الجلاء" },
+            { id: 4, name: "عيادة الأسنان وتجميل الفم", doctorName: "د. أحمد سامي", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor4@mawaed.com", doctorPass: "444444", secEmail: "sec4@mawaed.com", secPass: "sec444", price: 220, consultPrice: 90, phone: "01012345674", clinicPhone: "01012345674", icon: "fa-tooth", schedule: "يومياً (1ظ - 9م)", address: "الدور الأرضي - المجمع الطبي الشامل" },
+            { id: 5, name: "عيادة الجلدية والتجميل", doctorName: "د. هبة العوضي", doctorImage: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor5@mawaed.com", doctorPass: "555555", secEmail: "sec5@mawaed.com", secPass: "sec555", price: 280, consultPrice: 100, phone: "01012345675", clinicPhone: "01012345675", icon: "fa-wand-magic-sparkles", schedule: "السبت والإثنين والخميس (3م - 9م)", address: "الدور الرابع - عمارة الشفاء - الميدان الرئيسي" },
+            { id: 6, name: "عيادة النساء والتوليد", doctorName: "د. رانيا طاهر", doctorImage: "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor6@mawaed.com", doctorPass: "666666", secEmail: "sec6@mawaed.com", secPass: "sec666", price: 300, consultPrice: 150, phone: "01012345676", clinicPhone: "01012345676", icon: "fa-person-pregnant", schedule: "يومياً عدا الخميس والجمعة (4م - 9م)", address: "الدور الثاني - العيادات التخصصية - شارع الجمهورية" },
+            { id: 7, name: "عيادة العيون وجراحة الشبكيات", doctorName: "د. خالد عبد الرحمن", doctorImage: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor7@mawaed.com", doctorPass: "777777", secEmail: "sec7@mawaed.com", secPass: "sec777", price: 250, consultPrice: 100, phone: "01012345677", clinicPhone: "01012345677", icon: "fa-eye", schedule: "الأحد وثلاثاء والخميس (5م - 10م)", address: "الدور الثالث - مركز النور للبصريات" },
+            { id: 8, name: "عيادة الأنف والأذن والحنجرة", doctorName: "د. أسامة عبد الله", doctorImage: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor8@mawaed.com", doctorPass: "888888", secEmail: "sec8@mawaed.com", secPass: "sec888", price: 200, consultPrice: 80, phone: "01012345678", clinicPhone: "01012345678", icon: "fa-ear-listen", schedule: "يومياً (3ظ - 9م)", address: "الدور الأول - عمارة الأطباء - تقاطع النادي" },
+            { id: 9, name: "عيادة المخ والأعصاب", doctorName: "د. شريف توفيق", doctorImage: "https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor9@mawaed.com", doctorPass: "999999", secEmail: "sec9@mawaed.com", secPass: "sec999", price: 350, consultPrice: 150, phone: "01012345679", clinicPhone: "01012345679", icon: "fa-brain", schedule: "السبت وثلاثاء (6م - 11م)", address: "الدور الخامس - البرج الطبي الحديث" },
+            { id: 10, name: "عيادة جراحة المسالك البولية", doctorName: "د. طارق مصطفى", doctorImage: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=80", doctorEmail: "doctor10@mawaed.com", doctorPass: "101010", secEmail: "sec10@mawaed.com", secPass: "sec1000", price: 250, consultPrice: 100, phone: "01012345680", clinicPhone: "01012345680", icon: "fa-hospital", schedule: "الإثنين والسبت (4م - 10م)", address: "الدور الثاني - المركز الشامل - بجوار بنك مصر" }
         ];
         const DEFAULT_CONTACT_INFO = { phone: "19000 / 01012345678", whatsapp: "201012345678", email: "support@mawaed-health.com", address: "برج المركز الطبي - الدور الخامس - القاهرة" };
 
@@ -795,8 +799,35 @@
             else { li?.classList.add('hidden'); lo?.classList.remove('hidden'); }
         };
 
-        window.openClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.remove('hidden');
-        window.closeClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.add('hidden');
+        // === FIX: منع بقاء الايميل والباسورد بعد الخروج ===
+        function clearLoginFields() {
+            const emailEl = document.getElementById('loginEmail');
+            const passEl = document.getElementById('loginPassword');
+            const form = document.querySelector('#clinicLoginModal form');
+            if (form) form.reset();
+            if (emailEl) { emailEl.value = ''; emailEl.setAttribute('value',''); emailEl.setAttribute('autocomplete','off'); emailEl.setAttribute('data-lpignore','true'); }
+            if (passEl) { passEl.value = ''; passEl.setAttribute('value',''); passEl.setAttribute('autocomplete','new-password'); passEl.setAttribute('data-lpignore','true'); }
+            // حيلة لإيقاف Autofill
+            setTimeout(() => {
+                if (emailEl) emailEl.value = '';
+                if (passEl) passEl.value = '';
+            }, 50);
+            setTimeout(() => {
+                if (emailEl) emailEl.value = '';
+                if (passEl) passEl.value = '';
+            }, 300);
+        }
+
+        window.openClinicLoginModal = () => {
+            clearLoginFields();
+            document.getElementById('clinicLoginModal').classList.remove('hidden');
+            // تأكيد مسح بعد فتح المودال
+            setTimeout(clearLoginFields, 100);
+        };
+        window.closeClinicLoginModal = () => {
+            clearLoginFields();
+            document.getElementById('clinicLoginModal').classList.add('hidden');
+        };
         window.openContactUsModal = () => { renderContactUsModal(); document.getElementById('contactUsModal').classList.remove('hidden'); };
         window.closeContactUsModal = () => document.getElementById('contactUsModal').classList.add('hidden');
         window.closeClinicMapModal = () => document.getElementById('clinicMapModal').classList.add('hidden');
@@ -939,9 +970,24 @@
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
+            localStorage.removeItem('mawaed_logged_clinic');
+            sessionStorage.clear();
+            // مسح حقول الدخول نهائياً
+            clearLoginFields();
+            // حاول مسح كل input في المودال
+            try {
+                const e = document.getElementById('loginEmail');
+                const p = document.getElementById('loginPassword');
+                if(e){ e.value=''; e.defaultValue=''; }
+                if(p){ p.value=''; p.defaultValue=''; }
+                document.querySelector('#clinicLoginModal form')?.reset();
+            } catch(e){}
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
+            // تأكيد مسح متأخر
+            setTimeout(clearLoginFields, 200);
+            setTimeout(clearLoginFields, 600);
         };
 
         window.showView = function(v) {
@@ -973,9 +1019,14 @@
                             </div>
                             <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">${c.price} ج.م</span>
                         </div>
-                        <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
-                            <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
+                        <div class="space-y-2 text-xs text-slate-300 pt-3 border-t border-slate-700/50">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="bg-slate-900/80 p-2.5 rounded-xl border border-teal-500/30 flex flex-col items-center"><span class="text-[10px] text-slate-400">سعر الكشف</span><span class="font-black text-teal-300 text-sm">${c.price} ج.م</span></div>
+                                <div class="bg-amber-500/10 p-2.5 rounded-xl border border-amber-500/40 flex flex-col items-center"><span class="text-[10px] text-amber-200/70">سعر الإعادة</span><span class="font-black text-amber-400 text-sm">${c.consultPrice || Math.round(c.price*0.4)} ج.م</span></div>
+                            </div>
+                            <p class="flex items-center gap-2 pt-1"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
                             <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
+                            <p class="flex items-center gap-2 bg-slate-900/60 p-2 rounded-xl border border-emerald-500/20"><i class="fa-solid fa-phone text-emerald-400 text-[11px]"></i> <span class="font-mono text-emerald-300 font-black text-[13px]">${c.phone || c.clinicPhone || 'لم يحدد'}</span><span class="text-[10px] text-slate-400 mr-auto">تليفون العيادة</span><a href="tel:${c.phone || c.clinicPhone || ''}" class="bg-emerald-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold">اتصال</a></p>
                         </div>
                     </div>
                     <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-700/60">
@@ -1131,7 +1182,7 @@
             if (!c) return;
             const type = document.getElementById('bookType').value;
             let fee = c.price;
-            if (type === 'استشارة') fee = c.consultPrice || Math.round(c.price * 0.4);
+            if (type === 'إعادة' || type === 'استشارة') fee = c.consultPrice || Math.round(c.price * 0.4);
             if (type === 'كشف مستعجل') fee = Math.round(c.price * 1.3);
             document.getElementById('bookFeeDisplay').innerText = fee + " ج.م";
         };
@@ -1204,9 +1255,18 @@
         function populateSettingsTab() {
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c) return;
-            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress'].forEach(id => {
+            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicPhone', 'tabEditClinicSchedule', 'tabEditClinicAddress'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address }[id];
+                if (el) el.value = { 
+                    tabEditClinicName: c.name, 
+                    tabEditDoctorName: c.doctorName, 
+                    tabEditDoctorImage: c.doctorImage || '', 
+                    tabEditClinicPrice: c.price, 
+                    tabEditConsultPrice: c.consultPrice, 
+                    tabEditClinicPhone: c.phone || c.clinicPhone || '',
+                    tabEditClinicSchedule: c.schedule, 
+                    tabEditClinicAddress: c.address 
+                }[id];
             });
             // عرض البريد الإلكتروني الحالي من Firebase Auth
             const emailDisplay = document.getElementById('currentEmailDisplay');
@@ -1286,7 +1346,9 @@
                 doctorName: document.getElementById('tabEditDoctorName').value.trim(), 
                 doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), 
                 price: Number(document.getElementById('tabEditClinicPrice').value), 
-                consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
+                consultPrice: Number(document.getElementById('tabEditConsultPrice').value),
+                phone: document.getElementById('tabEditClinicPhone').value.trim(),
+                clinicPhone: document.getElementById('tabEditClinicPhone').value.trim(),
                 schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
                 address: document.getElementById('tabEditClinicAddress').value.trim(),
                 doctorEmail: document.getElementById('tabEditDoctorEmail').value.trim().toLowerCase(),
