@@ -966,19 +966,15 @@
             }
         };
 
-        window.logoutClinic = async function() {
-            try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
-            // إعادة الدخول كـ مريض مجهول
-            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
+        window.logoutClinic = function() {
+            // ① UI يتغير فوراً — المستخدم يشوف النتيجة على طول
             loggedInClinicId = null;
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
             localStorage.removeItem('mawaed_logged_clinic');
             sessionStorage.clear();
-            // مسح حقول الدخول نهائياً
             clearLoginFields();
-            // حاول مسح كل input في المودال
             try {
                 const e = document.getElementById('loginEmail');
                 const p = document.getElementById('loginPassword');
@@ -989,9 +985,15 @@
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
-            // تأكيد مسح متأخر
-            setTimeout(clearLoginFields, 200);
-            setTimeout(clearLoginFields, 600);
+            setTimeout(clearLoginFields, 300);
+
+            // ② Firebase في الخلفية بدون await — مش بيأخر الـ UI
+            if (auth) {
+                signOut(auth)
+                    .then(() => signInAnonymously(auth))
+                    .then(result => { currentUser = result?.user || null; })
+                    .catch(e => console.warn('Background logout/reauth:', e.message));
+            }
         };
 
         window.showView = function(v) {
@@ -1542,33 +1544,58 @@
                     const counterSnap = await transaction.get(counterRef);
                     let nextNum = 1;
                     if (counterSnap.exists()) {
-                        // احسب من العداد المحفوظ
                         nextNum = (counterSnap.data().nextQueue || 1);
                     } else {
-                        // اول مرة: احسب من الحجوزات الحالية المعتمدة
                         const existingApproved = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending','cancelled','expired'].includes(x.status)).length;
                         nextNum = existingApproved + 1;
                     }
-                    // تحديث الحجز والعداد ذرياً
                     transaction.set(bookingRef, { status: 'approved', queueNumber: nextNum, approvedAt: new Date().toISOString() }, { merge: true });
                     transaction.set(counterRef, { clinicId: Number(b.clinicId), date: b.date, nextQueue: nextNum + 1, lastUpdated: serverTimestamp() }, { merge: true });
                     return nextNum;
                 });
 
+                // ✅ تحديث فوري للـ state المحلي بدون انتظار onSnapshot
+                const idx = bookingsList.findIndex(x => String(x.id) === String(id));
+                if (idx !== -1) {
+                    bookingsList[idx] = { ...bookingsList[idx], status: 'approved', queueNumber: queueNum, approvedAt: new Date().toISOString() };
+                }
+                renderPendingRequestsTable();
+                renderTodayQueueTable();
+                renderApprovedBookingsTable();
+
                 window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${queueNum}) ✅`, '✅'); 
             } catch (err) { 
                 console.error(err); 
-                // fallback لو فشل الـ transaction (مثلاً قواعد قديمة)
+                // fallback لو فشل الـ transaction
                 try {
                     const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled','expired'].includes(x.status)).length + 1;
                     await updateDoc(getPublicDoc('bookings', String(id)), { status: 'approved', queueNumber: q });
+                    // تحديث فوري للـ state المحلي
+                    const idx = bookingsList.findIndex(x => String(x.id) === String(id));
+                    if (idx !== -1) {
+                        bookingsList[idx] = { ...bookingsList[idx], status: 'approved', queueNumber: q };
+                    }
+                    renderPendingRequestsTable();
+                    renderTodayQueueTable();
+                    renderApprovedBookingsTable();
                     window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅');
                 } catch(e2){
                     window.showToast('❌ فشل الاعتماد! ' + (err.message||''), '❌');
                 }
             } 
         };
-        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', String(id)), { status: 'cancelled' }); } catch (e) { console.error(e); } };
+        window.cancelBooking = async (id) => {
+            if (!currentUser) return;
+            try {
+                await updateDoc(getPublicDoc('bookings', String(id)), { status: 'cancelled' });
+                // تحديث فوري للـ state المحلي
+                const idx = bookingsList.findIndex(x => String(x.id) === String(id));
+                if (idx !== -1) bookingsList[idx] = { ...bookingsList[idx], status: 'cancelled' };
+                renderPendingRequestsTable();
+                renderTodayQueueTable();
+                renderApprovedBookingsTable();
+            } catch (e) { console.error(e); }
+        };
         window.addDrugToRx = function() { const n = document.getElementById('rxDrugName').value.trim(); if (!n) { window.showToast('يرجى كتابة اسم الدواء.', '⚠️'); return; } currentRxDrugs.push({ name: n, dose: document.getElementById('rxDrugDose').value.trim() || 'حسب الإرشادات' }); document.getElementById('rxDrugName').value = ''; document.getElementById('rxDrugDose').value = ''; renderRxDrugsList(); };
         function renderRxDrugsList() { const c = document.getElementById('rxDrugsContainer'); if (!c) return; if (!currentRxDrugs.length) { c.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية.</p>`; return; } c.innerHTML = currentRxDrugs.map((d, i) => `<div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-xs"><div><span class="font-extrabold text-amber-400">${i + 1}. ${d.name}</span><span class="text-slate-400 font-bold block text-[11px]">${d.dose}</span></div><button onclick="removeDrugFromRx(${i})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
         window.removeDrugFromRx = (i) => { currentRxDrugs.splice(i, 1); renderRxDrugsList(); };
