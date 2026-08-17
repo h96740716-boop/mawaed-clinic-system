@@ -596,7 +596,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ================================================================
         // ⚠️ FIX #1 — ضع Firebase Config الحقيقي هنا
@@ -695,14 +695,18 @@
                 // App Check — ضع مفتاح reCAPTCHA v3 هنا بعد تفعيله من:
                 // https://www.google.com/recaptcha/admin/create
                 // ================================================================
-                const RECAPTCHA_SITE_KEY = '6LduFIktAAAAABdrzQgEIfQb8UPUYe104pGbFPMA';
+                const RECAPTCHA_SITE_KEY = '6LduFIktAAAAABdrzQgEIfQb8PUYe104pGbFPMA';
+                // تفعيل Debug Token مؤقتاً عشان الـ 0% يبقى Verified (هنقفله بعد ما يشتغل)
+                // عشان تجيب الـ token: افتح Console في الموقع وهتلاقي رسالة فيها الـ token
+                self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+                console.log('🔧 App Check Debug Mode ON - افتح Console وهتلاقي الـ Debug Token');
                 if (RECAPTCHA_SITE_KEY !== 'YOUR_RECAPTCHA_SITE_KEY_HERE') {
                     try {
                         initializeAppCheck(app, {
                             provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
                             isTokenAutoRefreshEnabled: true
                         });
-                        console.log('✅ Firebase App Check مفعّل');
+                        console.log('✅ Firebase App Check مفعّل - SiteKey:', RECAPTCHA_SITE_KEY.substring(0,10)+'...');
                     } catch(acErr) {
                         console.warn('⚠️ App Check init warning (non-blocking):', acErr.message);
                     }
@@ -966,15 +970,19 @@
             }
         };
 
-        window.logoutClinic = function() {
-            // ① UI يتغير فوراً — المستخدم يشوف النتيجة على طول
+        window.logoutClinic = async function() {
+            try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
+            // إعادة الدخول كـ مريض مجهول
+            try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
             loggedInClinicId = null;
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
             localStorage.removeItem('mawaed_logged_clinic');
             sessionStorage.clear();
+            // مسح حقول الدخول نهائياً
             clearLoginFields();
+            // حاول مسح كل input في المودال
             try {
                 const e = document.getElementById('loginEmail');
                 const p = document.getElementById('loginPassword');
@@ -985,15 +993,9 @@
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
-            setTimeout(clearLoginFields, 300);
-
-            // ② Firebase في الخلفية بدون await — مش بيأخر الـ UI
-            if (auth) {
-                signOut(auth)
-                    .then(() => signInAnonymously(auth))
-                    .then(result => { currentUser = result?.user || null; })
-                    .catch(e => console.warn('Background logout/reauth:', e.message));
-            }
+            // تأكيد مسح متأخر
+            setTimeout(clearLoginFields, 200);
+            setTimeout(clearLoginFields, 600);
         };
 
         window.showView = function(v) {
@@ -1298,72 +1300,70 @@
                     tabEditClinicAddress: c.address 
                 }[id];
             });
-            // ملء حقول الإيميل والباسورد من بيانات العيادة في Firestore
-            const docEmailEl = document.getElementById('tabEditDoctorEmail');
-            const docPassEl  = document.getElementById('tabEditDoctorPass');
-            const secEmailEl = document.getElementById('tabEditSecEmail');
-            const secPassEl  = document.getElementById('tabEditSecPass');
-            if (docEmailEl) docEmailEl.value = c.doctorEmail || '';
-            if (docPassEl)  docPassEl.value  = c.doctorPass  || '';
-            if (secEmailEl) secEmailEl.value = c.secEmail    || '';
-            if (secPassEl)  secPassEl.value  = c.secPass     || '';
+            // عرض البريد الإلكتروني الحالي من Firebase Auth
+            const emailDisplay = document.getElementById('currentEmailDisplay');
+            if (emailDisplay && auth?.currentUser?.email) emailDisplay.textContent = auth.currentUser.email;
         }
 
         // ================================================================
-        // تغيير البريد — يُحدَّث في Firestore مباشرةً (بدون Firebase Auth)
+        // تغيير البريد الإلكتروني عبر Firebase Auth
         // ================================================================
         window.handleChangeEmail = async function(e) {
             e.preventDefault();
-            const newEmail    = document.getElementById('newEmailInput').value.trim().toLowerCase();
+            const newEmail = document.getElementById('newEmailInput').value.trim();
             const currentPass = document.getElementById('currentPassForEmail').value.trim();
-            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
-            if (!c || !currentUser) return;
-            const isDoc = currentClinicRole === 'doctor';
-            const correctPass = isDoc ? (c.doctorPass || '') : (c.secPass || '');
-            if (currentPass !== correctPass) { window.showToast('❌ كلمة المرور الحالية غير صحيحة!', '❌'); return; }
             const btn = e.target.querySelector('button[type="submit"]');
             if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
             try {
-                const updated = { ...c };
-                if (isDoc) updated.doctorEmail = newEmail; else updated.secEmail = newEmail;
-                await setDoc(getPublicDoc('clinics', c.id), updated);
-                const idx = clinicsList.findIndex(x => x.id == c.id);
-                if (idx > -1) clinicsList[idx] = updated;
-                populateSettingsTab();
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير البريد
+                await updateEmail(auth.currentUser, newEmail);
+                document.getElementById('currentEmailDisplay').textContent = newEmail;
                 document.getElementById('newEmailInput').value = '';
                 document.getElementById('currentPassForEmail').value = '';
                 window.showToast('✅ تم تغيير البريد الإلكتروني بنجاح!', '📧');
-            } catch(err) { window.showToast('❌ فشل: ' + (err.message || ''), '❌'); }
-            finally { if (btn) { btn.disabled = false; btn.textContent = 'تغيير البريد 📧'; } }
+            } catch (err) {
+                console.error('Email update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً!'
+                    : err.message || 'فشل تغيير البريد!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير البريد 📧'; }
+            }
         };
 
         // ================================================================
-        // تغيير كلمة المرور — يُحدَّث في Firestore مباشرةً
+        // تغيير كلمة المرور عبر Firebase Auth
         // ================================================================
         window.handleChangePassword = async function(e) {
             e.preventDefault();
             const currentPass = document.getElementById('currentPassInput').value.trim();
-            const newPass     = document.getElementById('newPassInput').value.trim();
-            const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
-            if (!c || !currentUser) return;
-            const isDoc = currentClinicRole === 'doctor';
-            const correctPass = isDoc ? (c.doctorPass || '') : (c.secPass || '');
-            if (currentPass !== correctPass) { window.showToast('❌ كلمة المرور الحالية غير صحيحة!', '❌'); return; }
-            if (newPass.length < 6) { window.showToast('❌ كلمة المرور الجديدة قصيرة! (6 أحرف على الأقل)', '❌'); return; }
+            const newPass = document.getElementById('newPassInput').value.trim();
             const btn = e.target.querySelector('button[type="submit"]');
             if (btn) { btn.disabled = true; btn.textContent = 'جاري التغيير...'; }
             try {
-                const updated = { ...c };
-                if (isDoc) updated.doctorPass = newPass; else updated.secPass = newPass;
-                await setDoc(getPublicDoc('clinics', c.id), updated);
-                const idx = clinicsList.findIndex(x => x.id == c.id);
-                if (idx > -1) clinicsList[idx] = updated;
-                populateSettingsTab();
+                // إعادة التحقق من الهوية أولاً
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPass);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                // تغيير كلمة المرور
+                await updatePassword(auth.currentUser, newPass);
                 document.getElementById('currentPassInput').value = '';
                 document.getElementById('newPassInput').value = '';
                 window.showToast('✅ تم تغيير كلمة المرور بنجاح!', '🔑');
-            } catch(err) { window.showToast('❌ فشل: ' + (err.message || ''), '❌'); }
-            finally { if (btn) { btn.disabled = false; btn.textContent = 'تغيير كلمة المرور 🔑'; } }
+            } catch (err) {
+                console.error('Password update error:', err);
+                const msg = err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+                    ? 'كلمة المرور الحالية غير صحيحة!'
+                    : err.code === 'auth/weak-password' ? 'كلمة المرور الجديدة ضعيفة جداً! (6 أحرف على الأقل)'
+                    : err.message || 'فشل تغيير كلمة المرور!';
+                window.showToast(`❌ ${msg}`, '❌');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'تغيير كلمة المرور 🔑'; }
+            }
         };
 
         window.handleEditClinicSubmit = async function(e) {
@@ -1544,58 +1544,33 @@
                     const counterSnap = await transaction.get(counterRef);
                     let nextNum = 1;
                     if (counterSnap.exists()) {
+                        // احسب من العداد المحفوظ
                         nextNum = (counterSnap.data().nextQueue || 1);
                     } else {
+                        // اول مرة: احسب من الحجوزات الحالية المعتمدة
                         const existingApproved = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending','cancelled','expired'].includes(x.status)).length;
                         nextNum = existingApproved + 1;
                     }
+                    // تحديث الحجز والعداد ذرياً
                     transaction.set(bookingRef, { status: 'approved', queueNumber: nextNum, approvedAt: new Date().toISOString() }, { merge: true });
                     transaction.set(counterRef, { clinicId: Number(b.clinicId), date: b.date, nextQueue: nextNum + 1, lastUpdated: serverTimestamp() }, { merge: true });
                     return nextNum;
                 });
 
-                // ✅ تحديث فوري للـ state المحلي بدون انتظار onSnapshot
-                const idx = bookingsList.findIndex(x => String(x.id) === String(id));
-                if (idx !== -1) {
-                    bookingsList[idx] = { ...bookingsList[idx], status: 'approved', queueNumber: queueNum, approvedAt: new Date().toISOString() };
-                }
-                renderPendingRequestsTable();
-                renderTodayQueueTable();
-                renderApprovedBookingsTable();
-
                 window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${queueNum}) ✅`, '✅'); 
             } catch (err) { 
                 console.error(err); 
-                // fallback لو فشل الـ transaction
+                // fallback لو فشل الـ transaction (مثلاً قواعد قديمة)
                 try {
                     const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled','expired'].includes(x.status)).length + 1;
                     await updateDoc(getPublicDoc('bookings', String(id)), { status: 'approved', queueNumber: q });
-                    // تحديث فوري للـ state المحلي
-                    const idx = bookingsList.findIndex(x => String(x.id) === String(id));
-                    if (idx !== -1) {
-                        bookingsList[idx] = { ...bookingsList[idx], status: 'approved', queueNumber: q };
-                    }
-                    renderPendingRequestsTable();
-                    renderTodayQueueTable();
-                    renderApprovedBookingsTable();
                     window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅');
                 } catch(e2){
                     window.showToast('❌ فشل الاعتماد! ' + (err.message||''), '❌');
                 }
             } 
         };
-        window.cancelBooking = async (id) => {
-            if (!currentUser) return;
-            try {
-                await updateDoc(getPublicDoc('bookings', String(id)), { status: 'cancelled' });
-                // تحديث فوري للـ state المحلي
-                const idx = bookingsList.findIndex(x => String(x.id) === String(id));
-                if (idx !== -1) bookingsList[idx] = { ...bookingsList[idx], status: 'cancelled' };
-                renderPendingRequestsTable();
-                renderTodayQueueTable();
-                renderApprovedBookingsTable();
-            } catch (e) { console.error(e); }
-        };
+        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', String(id)), { status: 'cancelled' }); } catch (e) { console.error(e); } };
         window.addDrugToRx = function() { const n = document.getElementById('rxDrugName').value.trim(); if (!n) { window.showToast('يرجى كتابة اسم الدواء.', '⚠️'); return; } currentRxDrugs.push({ name: n, dose: document.getElementById('rxDrugDose').value.trim() || 'حسب الإرشادات' }); document.getElementById('rxDrugName').value = ''; document.getElementById('rxDrugDose').value = ''; renderRxDrugsList(); };
         function renderRxDrugsList() { const c = document.getElementById('rxDrugsContainer'); if (!c) return; if (!currentRxDrugs.length) { c.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية.</p>`; return; } c.innerHTML = currentRxDrugs.map((d, i) => `<div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-xs"><div><span class="font-extrabold text-amber-400">${i + 1}. ${d.name}</span><span class="text-slate-400 font-bold block text-[11px]">${d.dose}</span></div><button onclick="removeDrugFromRx(${i})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
         window.removeDrugFromRx = (i) => { currentRxDrugs.splice(i, 1); renderRxDrugsList(); };
@@ -1717,31 +1692,12 @@
             tbody.innerHTML = list.slice().sort((a, b) => b.id - a.id).map(e => `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono text-slate-400 text-[11px]">${e.date}<span class="text-slate-500 text-[10px] block">${e.time || ''}</span></td><td class="p-3 font-bold text-white">${e.title}</td><td class="p-3 font-mono font-bold text-rose-400">${e.amount} ج.م</td><td class="p-3 text-center"><button onclick="deleteExpense(${e.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2.5 py-1 rounded-xl transition text-[11px]"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
         }
 
-        window.searchRequestStatus = async function() {
+        window.searchRequestStatus = function() {
             const q = document.getElementById('searchTicketInput').value.trim().toLowerCase();
             const res = document.getElementById('ticketSearchResult');
             if (!q) return;
+            const found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q));
             res.classList.remove('hidden');
-            res.innerHTML = `<div class="p-4 text-center text-teal-300 text-xs font-bold"><i class="fa-solid fa-spinner fa-spin ml-1"></i>جاري التحقق من أحدث البيانات...</div>`;
-
-            let found = null;
-
-            // ① محاولة جلب البيانات مباشرة من Firestore للحصول على أحدث status
-            if (db && auth && auth.currentUser) {
-                try {
-                    const snap = await getDocs(getPublicColl('bookings'));
-                    const freshList = snap.docs.map(d => d.data());
-                    found = freshList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').replace(/\D/g,'').includes(q.replace(/\D/g,'')));
-                } catch(e) {
-                    console.warn('Fresh query failed, using local:', e.message);
-                }
-            }
-
-            // ② Fallback للقائمة المحلية
-            if (!found) {
-                found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q));
-            }
-
             if (!found) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
             const ct = getActiveCurrentTurn(found.clinicId, found.date);
             const mqn = found.queueNumber || 0;
@@ -1749,7 +1705,6 @@
             let sb = '', sm = '';
             if (found.status === 'pending') { sb = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold">بانتظار اعتماد السكرتارية ⏳</span>`; sm = 'طلبك قيد المراجعة، سيتم تحديد رقم دورك فور الاعتماد.'; }
             else if (found.status === 'completed') { sb = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الفحص ✅</span>`; sm = 'نتمنى لك دوام الصحة!'; }
-            else if (found.status === 'cancelled') { sb = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الإلغاء ❌</span>`; sm = 'تم إلغاء هذا الحجز. يمكنك الحجز مجدداً.'; }
             else if (found.status === 'approved') {
                 if (mqn === ct) { sb = `<span class="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-xs animate-bounce">🔥 الدور عليك الآن!</span>`; sm = 'توجه فوراً لغرفة الفحص!'; }
                 else if (mqn === ct + 1) { sb = `<span class="bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-black">أنت التالي مباشرة ⏳</span>`; sm = 'استعد، أنت التالي.'; }
@@ -1774,5 +1729,3 @@
     </script>
 </body>
 </html>
-
-
