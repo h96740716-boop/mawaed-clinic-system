@@ -1476,6 +1476,8 @@ ${customReply}
                 if(futureList.length === 0) futureTbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد طلبات منتظرة.</td></tr>`;
                 else futureTbody.innerHTML = futureList.map(b=> rowHtml(b, true)).join('');
             }
+            if(typeof renderRejectedBookingsTable === 'function') renderRejectedBookingsTable();
+            if(typeof renderApprovedBookingsTable === 'function') renderApprovedBookingsTable();
         }
         function autoExpireInquiries(){
             const now = Date.now();
