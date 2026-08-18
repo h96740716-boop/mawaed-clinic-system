@@ -67,6 +67,10 @@
                     <span id="firebaseStatusDot" class="w-2 h-2 rounded-full inline-block"></span>
                     <span id="firebaseStatusText"></span>
                 </div>
+                <button onclick="openTicketSearchModal()" class="bg-gradient-to-r from-teal-600/30 to-emerald-600/30 hover:from-teal-600/50 hover:to-emerald-600/50 text-teal-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-teal-500/40">
+                    <i class="fa-solid fa-mobile-screen-button text-amber-400 text-sm animate-pulse"></i>
+                    <span><span class="hidden sm:inline">تتبع دورك من البيت</span><span class="sm:hidden">تتبع دورك</span></span>
+                </button>
                 <button onclick="openContactUsModal()" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-teal-500/30">
                     <i class="fa-solid fa-headset text-teal-400"></i>
                     <span class="hidden sm:inline">اتصل بنا</span>
@@ -95,6 +99,10 @@
         <section id="viewPatientLanding" class="space-y-8">
             <div class="bg-gradient-to-r from-slate-800 via-teal-950/40 to-slate-800 p-6 sm:p-10 rounded-3xl border border-teal-500/20 shadow-2xl">
                 <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-extrabold">
+                        <i class="fa-solid fa-bolt text-amber-400 text-xs animate-bounce"></i>
+                        مربوط بـ Firebase - تصل الحجوزات فورياً للعيادة
+                    </span>
                     <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight">احجز موعد كشفك وتتبع دورك مباشرة من بيتك</h2>
                     <p class="text-slate-300 text-sm leading-relaxed">اختر العيادة، احجز كشفك، وتابع دورك المباشر في الانتظار من موبايلك!</p>
                 </div>
@@ -306,30 +314,10 @@
                             <div><label class="text-slate-300 font-bold block mb-1">اسم العيادة *</label><input type="text" id="tabEditClinicName" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                             <div><label class="text-slate-300 font-bold block mb-1">اسم الطبيب *</label><input type="text" id="tabEditDoctorName" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
-                        <!-- صورة الدكتور من الجهاز أو لينك -->
-                        <div class="bg-slate-900/50 p-3 rounded-xl border border-teal-500/20 space-y-3">
-                            <label class="text-teal-300 font-black block text-[11px]"><i class="fa-solid fa-image ml-1"></i> صورة الطبيب (من الجهاز أو رابط)</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="text-[10px] text-slate-400 font-bold block mb-1">📁 رفع من الجهاز:</label>
-                                    <input type="file" id="tabEditDoctorImageFile" accept="image/*" onchange="handleDoctorImageFile(this)" class="w-full p-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-[10px] file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:bg-teal-600 file:text-white file:font-bold file:text-[10px] hover:file:bg-teal-500">
-                                    <p class="text-[9px] text-slate-500 mt-1">سيتم حفظ الصورة كـ رابط تلقائياً</p>
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 font-bold block mb-1">🔗 أو رابط الصورة:</label>
-                                    <input type="url" id="tabEditDoctorImage" placeholder="https://example.com/doctor.jpg" class="w-full p-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-teal-500 font-mono text-[11px]">
-                                </div>
-                            </div>
-                            <div id="doctorImagePreview" class="hidden flex items-center gap-3 p-2 bg-slate-800 rounded-xl border border-slate-700">
-                                <img id="doctorImagePreviewImg" src="" class="w-12 h-12 rounded-xl object-cover border border-teal-500">
-                                <span class="text-[10px] text-slate-400">معاينة الصورة</span>
-                                <button type="button" onclick="clearDoctorImage()" class="mr-auto bg-rose-500/20 text-rose-300 px-2 py-1 rounded-lg text-[10px] border border-rose-500/30">حذف</button>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div><label class="text-slate-300 font-bold block mb-1"><i class="fa-solid fa-phone ml-1 text-emerald-400"></i> رقم تليفون العيادة *</label><input type="text" id="tabEditClinicPhone" required placeholder="010xxxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-emerald-500/30 rounded-xl text-white focus:outline-none focus:border-emerald-400 font-mono"></div>
+                        <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الإعادة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
@@ -446,12 +434,9 @@
                 <h3 class="text-lg font-black text-white">دخول العيادات والانتظار</h3>
                 <p class="text-xs text-slate-400">سجل دخولك بالطبيب أو السكرتيرة</p>
             </div>
-            <!-- حقل وهمي لخداع المتصفح ومنع الحفظ -->
-            <input type="text" style="display:none" autocomplete="username">
-            <input type="password" style="display:none" autocomplete="new-password">
-            <form onsubmit="handleClinicLogin(event)" class="space-y-4" autocomplete="off" data-lpignore="true">
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="text" inputmode="email" id="loginEmail" name="mawaed_no_save_email_xyz" autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
-                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" name="mawaed_no_save_pass_xyz" autocomplete="new-password" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" readonly onfocus="this.removeAttribute('readonly');" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+            <form onsubmit="handleClinicLogin(event)" class="space-y-4">
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
+                <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition">تسجيل الدخول 🔓</button>
             </form>
         </div>
@@ -671,7 +656,7 @@
                 // App Check — ضع مفتاح reCAPTCHA v3 هنا بعد تفعيله من:
                 // https://www.google.com/recaptcha/admin/create
                 // ================================================================
-                const RECAPTCHA_SITE_KEY = '6LduFIktAAAAABdrzQgEIfQb8UPUYe104pGbFPMA';
+                const RECAPTCHA_SITE_KEY = 'YOUR_RECAPTCHA_SITE_KEY_HERE';
                 if (RECAPTCHA_SITE_KEY !== 'YOUR_RECAPTCHA_SITE_KEY_HERE') {
                     initializeAppCheck(app, {
                         provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
@@ -775,28 +760,8 @@
             else { li?.classList.add('hidden'); lo?.classList.remove('hidden'); }
         };
 
-        // === منع حفظ الايميل والباسورد نهائياً ===
-        function clearLoginFields(){
-            const emailEl = document.getElementById('loginEmail');
-            const passEl = document.getElementById('loginPassword');
-            const form = document.querySelector('#clinicLoginModal form');
-            if(form) form.reset();
-            if(emailEl){ emailEl.value=''; emailEl.setAttribute('value',''); emailEl.setAttribute('autocomplete','off'); }
-            if(passEl){ passEl.value=''; passEl.setAttribute('value',''); passEl.setAttribute('autocomplete','new-password'); }
-            // مسح أي بيانات محفوظة في المتصفح
-            setTimeout(()=>{ if(emailEl) emailEl.value=''; if(passEl) passEl.value=''; }, 50);
-            setTimeout(()=>{ if(emailEl) emailEl.value=''; if(passEl) passEl.value=''; }, 300);
-        }
-
-        window.openClinicLoginModal = () => {
-            clearLoginFields();
-            document.getElementById('clinicLoginModal').classList.remove('hidden');
-            setTimeout(clearLoginFields, 100);
-        };
-        window.closeClinicLoginModal = () => {
-            clearLoginFields();
-            document.getElementById('clinicLoginModal').classList.add('hidden');
-        };
+        window.openClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.remove('hidden');
+        window.closeClinicLoginModal = () => document.getElementById('clinicLoginModal').classList.add('hidden');
         window.openContactUsModal = () => { renderContactUsModal(); document.getElementById('contactUsModal').classList.remove('hidden'); };
         window.closeContactUsModal = () => document.getElementById('contactUsModal').classList.add('hidden');
         window.closeClinicMapModal = () => document.getElementById('clinicMapModal').classList.add('hidden');
@@ -804,32 +769,8 @@
         window.closeEditContactUsModal = () => document.getElementById('editContactUsModal').classList.add('hidden');
         window.closeInquiryModal = () => document.getElementById('inquiryModal').classList.add('hidden');
         window.closeBookingModal = () => document.getElementById('bookingModal').classList.add('hidden');
-        window.closeTicketSearchModal = () => {
-            document.getElementById('ticketSearchModal').classList.add('hidden');
-            window._trackingClinicId = null;
-        };
-        window.openTicketSearchModal = (clinicId = null) => {
-            window._trackingClinicId = clinicId ? Number(clinicId) : null;
-            const modal = document.getElementById('ticketSearchModal');
-            const titleEl = document.getElementById('ticketModalTitle');
-            const subEl = document.getElementById('ticketModalSub');
-            const resultEl = document.getElementById('ticketSearchResult');
-            const inputEl = document.getElementById('searchTicketInput');
-            if(resultEl){ resultEl.classList.add('hidden'); resultEl.innerHTML=''; }
-            if(inputEl) inputEl.value = '';
-            if(clinicId){
-                const c = clinicsList.find(x => Number(x.id) === Number(clinicId));
-                if(c){
-                    if(titleEl) titleEl.innerHTML = `تتبع دورك في <span class="text-amber-400">${c.name}</span>`;
-                    if(subEl) subEl.innerHTML = `<span class="text-teal-300 font-bold">${c.doctorName}</span> • ادخل رقمك المسجل في هذه العيادة فقط`;
-                }
-            } else {
-                if(titleEl) titleEl.innerText = 'تتبع دورك لايف من البيت';
-                if(subEl) subEl.innerText = 'ادخل رقم الهاتف أو كود الحجز';
-            }
-            modal.classList.remove('hidden');
-            setTimeout(()=> inputEl?.focus(), 100);
-        };
+        window.closeTicketSearchModal = () => document.getElementById('ticketSearchModal').classList.add('hidden');
+        window.openTicketSearchModal = () => document.getElementById('ticketSearchModal').classList.remove('hidden');
         window.closePrintModal = () => document.getElementById('prescriptionPrintModal').classList.add('hidden');
 
         function renderContactUsModal() {
@@ -957,27 +898,15 @@
 
         window.logoutClinic = async function() {
             try { await signOut(auth); } catch(e) { console.error('SignOut error:', e); }
+            // إعادة الدخول كـ مريض مجهول
             try { await signInAnonymously(auth); currentUser = auth.currentUser; } catch(e) { console.error('Anon re-auth error:', e); }
             loggedInClinicId = null;
             currentClinicRole = null;
             localStorage.removeItem('mawaed_logged_clinic_id');
             localStorage.removeItem('mawaed_logged_role');
-            localStorage.removeItem('mawaed_logged_clinic');
-            sessionStorage.clear();
-            // مسح الايميل والباسورد نهائياً
-            clearLoginFields();
-            try{
-                const e = document.getElementById('loginEmail');
-                const p = document.getElementById('loginPassword');
-                if(e){ e.value=''; e.defaultValue=''; }
-                if(p){ p.value=''; p.defaultValue=''; }
-                document.querySelector('#clinicLoginModal form')?.reset();
-            }catch(e){}
             window.updateNavState();
             window.showView('patientLanding');
             window.showToast('تم تسجيل الخروج بأمان. 🚪', '🚪');
-            setTimeout(clearLoginFields, 200);
-            setTimeout(clearLoginFields, 600);
         };
 
         window.showView = function(v) {
@@ -992,60 +921,36 @@
             document.querySelectorAll('#clinicsCardsContainer > div').forEach(c => c.classList.toggle('hidden', !c.innerText.toLowerCase().includes(q)));
         };
 
-        
         function renderClinicCards() {
             const container = document.getElementById('clinicsCardsContainer');
             if (!container) return;
+            // ترتيب العيادات بالرقم من 1 لـ 10
             const sorted = [...clinicsList].sort((a,b)=> Number(a.id) - Number(b.id));
             container.innerHTML = sorted.map(c => {
                 const img = c.doctorImage || 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=200&auto=format&fit=crop&q=80';
-                const consultPrice = c.consultPrice || Math.round(c.price*0.4);
-                const phone = c.phone || c.clinicPhone || '';
-                const cleanPhone = phone.replace(/[^0-9+]/g,'');
-                return `<div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-4 space-y-3 hover:border-teal-500/50 transition duration-300 flex flex-col justify-between shadow-lg relative overflow-hidden">
+                return `<div class="bg-slate-800/90 rounded-2xl border border-slate-700/80 p-5 space-y-4 hover:border-teal-500/50 transition duration-300 flex flex-col justify-between shadow-lg relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-slate-950 text-[11px] font-black px-3 py-1 rounded-bl-xl rounded-tr-2xl">عيادة #${c.id}</div>
-                    <div class="space-y-3 pt-4">
-                        <div class="flex items-center gap-3">
-                            <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-12 h-12 rounded-xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
-                            <div class="flex-1"><span class="bg-teal-500/10 text-teal-300 text-[9px] font-extrabold px-2 py-0.5 rounded-md border border-teal-500/20"><i class="fa-solid ${c.icon || 'fa-user-doctor'} ml-1"></i> ${c.name}</span><h4 class="text-[13px] font-black text-white mt-1 leading-tight">${c.doctorName}</h4></div>
+                    <div class="space-y-3 pt-3">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-14 h-14 rounded-2xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
+                                <div><span class="bg-teal-500/10 text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-teal-500/30"><i class="fa-solid ${c.icon || 'fa-user-doctor'} ml-1"></i> ${c.name}</span><h4 class="text-base font-extrabold text-white mt-1">${c.doctorName}</h4></div>
+                            </div>
+                            <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">${c.price} ج.م</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-slate-900/70 px-3 py-2 rounded-xl border border-teal-500/25 flex flex-col">
-                                <span class="text-[9px] text-slate-400 font-bold"><i class="fa-solid fa-stethoscope ml-1 text-teal-400"></i>سعر الكشف</span>
-                                <span class="font-black text-teal-300 text-[14px] mt-0.5">${c.price} <span class="text-[10px]">ج.م</span></span>
-                            </div>
-                            <div class="bg-amber-500/10 px-3 py-2 rounded-xl border border-amber-500/25 flex flex-col">
-                                <span class="text-[9px] text-amber-200/70 font-bold"><i class="fa-solid fa-rotate-left ml-1 text-amber-400"></i>سعر الإعادة</span>
-                                <span class="font-black text-amber-400 text-[14px] mt-0.5">${consultPrice} <span class="text-[10px]">ج.م</span></span>
-                            </div>
-                        </div>
-                        <div class="space-y-2 text-[11px] text-slate-300 pt-2 border-t border-slate-700/40">
-                            <p class="flex items-start gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px] mt-0.5"></i> <span>${c.schedule}</span></p>
-                            <p class="flex items-start gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px] mt-0.5"></i> <span class="flex-1 leading-tight">${c.address}</span></p>
-                            <div class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-emerald-500/20">
-                                <i class="fa-solid fa-phone text-emerald-400 text-[12px]"></i> 
-                                <span class="font-mono text-emerald-300 font-black text-[13px]">${phone || 'غير متوفر'}</span>
-                                <span class="text-[9px] text-slate-400 mr-auto">تليفون العيادة</span>
-                                ${phone ? `<a href="tel:${cleanPhone}" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded-lg text-[10px] font-black transition">اتصال</a>` : ''}
-                            </div>
+                        <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
+                            <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
+                            <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
                         </div>
                     </div>
-                    <div class="space-y-2 pt-2 border-t border-slate-700/50">
-                        <button onclick="openTicketSearchModal(${c.id})" class="w-full bg-gradient-to-r from-slate-900 via-teal-900/70 to-slate-900 hover:from-teal-800/70 hover:to-emerald-800/70 text-white font-black py-2.5 rounded-xl text-[12px] transition flex items-center justify-center gap-2 border border-teal-500/50 shadow-lg shadow-teal-500/10 group">
-                            <span class="w-5 h-5 bg-amber-400 text-slate-950 rounded-full flex items-center justify-center text-[10px] animate-pulse"><i class="fa-solid fa-satellite-dish"></i></span>
-                            <span>تتبع دورك من البيت</span>
-                            <span class="bg-amber-400/20 text-amber-300 text-[8px] px-1.5 py-0.5 rounded-full border border-amber-400/30">لايف</span>
-                        </button>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <button onclick="openClinicMapModal(${c.id})" class="bg-slate-700/80 hover:bg-slate-700 text-teal-300 font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-slate-600"><i class="fa-solid fa-map-location-dot text-[12px]"></i><span>الموقع</span></button>
-                            <button onclick="openInquiryModal(${c.id})" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-amber-500/30"><i class="fa-solid fa-comment-dots text-[12px]"></i><span>استفسار</span></button>
-                            <button onclick="openBookingModal(${c.id})" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-md"><i class="fa-solid fa-calendar-check text-[12px]"></i><span>حجز كشف</span></button>
-                        </div>
+                    <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-700/60">
+                        <button onclick="openClinicMapModal(${c.id})" class="bg-slate-700/80 hover:bg-slate-700 text-teal-300 font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-slate-600"><i class="fa-solid fa-map-location-dot"></i><span>الموقع</span></button>
+                        <button onclick="openInquiryModal(${c.id})" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-amber-500/30"><i class="fa-solid fa-comment-dots"></i><span>استفسار</span></button>
+                        <button onclick="openBookingModal(${c.id})" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-md"><i class="fa-solid fa-calendar-check"></i><span>حجز كشف</span></button>
                     </div>
                 </div>`;
             }).join('');
         }
-
 
         window.openInquiryModal = function(clinicId) {
             const c = clinicsList.find(x => Number(x.id) === Number(clinicId));
@@ -1198,64 +1103,14 @@
         function populateSettingsTab() {
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c) return;
-            const map = { 
-                tabEditClinicName: c.name, 
-                tabEditDoctorName: c.doctorName, 
-                tabEditDoctorImage: c.doctorImage || '', 
-                tabEditClinicPrice: c.price, 
-                tabEditConsultPrice: c.consultPrice || Math.round(c.price*0.4),
-                tabEditClinicPhone: c.phone || c.clinicPhone || '',
-                tabEditClinicSchedule: c.schedule, 
-                tabEditClinicAddress: c.address,
-                tabEditDoctorEmail: c.doctorEmail || '',
-                tabEditDoctorPass: c.doctorPass || '',
-                tabEditSecEmail: c.secEmail || '',
-                tabEditSecPass: c.secPass || ''
-            };
-            Object.keys(map).forEach(id => {
+            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = map[id];
+                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address }[id];
             });
-            // عرض معاينة الصورة الحالية
-            if(c.doctorImage){
-                const preview = document.getElementById('doctorImagePreview');
-                const previewImg = document.getElementById('doctorImagePreviewImg');
-                if(preview && previewImg){
-                    previewImg.src = c.doctorImage;
-                    preview.classList.remove('hidden');
-                }
-            }
+            // عرض البريد الإلكتروني الحالي من Firebase Auth
             const emailDisplay = document.getElementById('currentEmailDisplay');
             if (emailDisplay && auth?.currentUser?.email) emailDisplay.textContent = auth.currentUser.email;
         }
-
-        // رفع صورة الدكتور من الجهاز
-        window.handleDoctorImageFile = function(input){
-            const file = input.files[0];
-            if(!file) return;
-            if(file.size > 2*1024*1024){
-                window.showToast('❌ الصورة كبيرة جداً! اختر صورة أقل من 2 ميجا', '❌');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function(e){
-                const base64 = e.target.result;
-                document.getElementById('tabEditDoctorImage').value = base64;
-                const preview = document.getElementById('doctorImagePreview');
-                const previewImg = document.getElementById('doctorImagePreviewImg');
-                if(preview && previewImg){
-                    previewImg.src = base64;
-                    preview.classList.remove('hidden');
-                }
-                window.showToast('✅ تم تحميل الصورة، اضغط حفظ', '📷');
-            };
-            reader.readAsDataURL(file);
-        };
-        window.clearDoctorImage = function(){
-            document.getElementById('tabEditDoctorImage').value = '';
-            document.getElementById('tabEditDoctorImageFile').value = '';
-            document.getElementById('doctorImagePreview').classList.add('hidden');
-        };
 
         // ================================================================
         // تغيير البريد الإلكتروني عبر Firebase Auth
@@ -1329,8 +1184,6 @@
                 name: document.getElementById('tabEditClinicName').value.trim(), 
                 doctorName: document.getElementById('tabEditDoctorName').value.trim(), 
                 doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), 
-                phone: document.getElementById('tabEditClinicPhone').value.trim(),
-                clinicPhone: document.getElementById('tabEditClinicPhone').value.trim(),
                 price: Number(document.getElementById('tabEditClinicPrice').value), 
                 consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
                 schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
@@ -1560,27 +1413,7 @@
             const q = document.getElementById('searchTicketInput').value.trim().toLowerCase();
             const res = document.getElementById('ticketSearchResult');
             if (!q) return;
-            const trackingClinicId = window._trackingClinicId || null;
-            let found = null;
-            if(trackingClinicId){
-                found = bookingsList.find(b => Number(b.clinicId) === Number(trackingClinicId) && ((b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q)));
-            } else {
-                found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q));
-            }
-            res.classList.remove('hidden');
-            if (!found) { 
-                if(trackingClinicId){
-                    const c = clinicsList.find(x => Number(x.id) === Number(trackingClinicId));
-                    res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center space-y-2">
-                        <i class="fa-solid fa-circle-exclamation text-lg block text-rose-400"></i>
-                        <p class="text-rose-300 font-bold">غير موجود في ${c?.name || 'هذه العيادة'}</p>
-                        <p class="text-[10px] text-slate-400">تأكد من رقمك المسجل في هذه العيادة فقط</p>
-                    </div>`; 
-                } else {
-                    res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; 
-                }
-                return; 
-            }
+            const found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q));
             res.classList.remove('hidden');
             if (!found) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
             const ct = getActiveCurrentTurn(found.clinicId, found.date);
