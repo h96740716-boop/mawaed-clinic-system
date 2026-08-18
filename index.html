@@ -67,10 +67,7 @@
                     <span id="firebaseStatusDot" class="w-2 h-2 rounded-full inline-block"></span>
                     <span id="firebaseStatusText"></span>
                 </div>
-                <button onclick="openTicketSearchModal()" class="bg-gradient-to-r from-teal-600/30 to-emerald-600/30 hover:from-teal-600/50 hover:to-emerald-600/50 text-teal-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-teal-500/40">
-                    <i class="fa-solid fa-mobile-screen-button text-amber-400 text-sm animate-pulse"></i>
-                    <span><span class="hidden sm:inline">تتبع دورك من البيت</span><span class="sm:hidden">تتبع دورك</span></span>
-                </button>
+                
                 <button onclick="openContactUsModal()" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-teal-500/30">
                     <i class="fa-solid fa-headset text-teal-400"></i>
                     <span class="hidden sm:inline">اتصل بنا</span>
@@ -154,19 +151,29 @@
                 <button onclick="switchSubTab('settings')" id="tabBtnSettings" class="subtab-btn bg-slate-800 text-amber-300 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-amber-500/30"><i class="fa-solid fa-sliders"></i><span>تعديل العيادة والجدول</span></button>
             </div>
 
-            <!-- PENDING -->
-            <div id="subTabPending" class="subtab-content space-y-4">
-                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-list-check"></i><span>طلبات الكشف المعلقة (مربوطة سحابياً)</span></h4>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <input type="date" id="filterPendingDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 rounded-xl text-xs px-3 py-1.5 text-white">
-                            <button onclick="clearPendingDateFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-xl font-bold">عرض الكل</button>
-                        </div>
+            <!-- PENDING - مقسمة لطلبات اليوم وطلبات منتظرة -->
+            <div id="subTabPending" class="subtab-content space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1">
+                    <h4 class="text-sm font-black text-white flex items-center gap-2"><i class="fa-solid fa-list-check text-teal-400"></i><span>الطلبات المعلقة (مربوطة سحابياً)</span></h4>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <input type="date" id="filterPendingDate" onchange="renderPendingRequestsTable()" class="bg-slate-900 border border-slate-700 rounded-xl text-xs px-3 py-1.5 text-white">
+                        <button onclick="clearPendingDateFilter()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-xl font-bold">عرض الكل</button>
                     </div>
+                </div>
+                <div class="bg-gradient-to-r from-teal-900/20 to-emerald-900/10 p-5 rounded-2xl border border-teal-500/30 space-y-3 shadow-lg">
+                    <h5 class="text-xs font-black text-teal-300 flex items-center gap-2"><i class="fa-solid fa-calendar-day text-amber-400"></i> طلبات اليوم <span class="bg-teal-500/20 text-teal-200 px-2 py-0.5 rounded-full text-[10px]" id="todayPendingCount">0</span> <span class="text-[10px] text-slate-500 font-normal" id="todayDateLabel"></span></h5>
+                    <div class="overflow-x-auto rounded-2xl border border-teal-500/20">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <tbody id="todayPendingTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-3">
+                    <h5 class="text-xs font-black text-amber-300 flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400"></i> طلبات منتظرة (أيام قادمة) <span class="bg-amber-500/20 text-amber-200 px-2 py-0.5 rounded-full text-[10px]" id="futurePendingCount">0</span></h5>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
+                            <thead class="bg-slate-900 text-amber-300/80 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">اسم المريض والعنوان</th><th class="p-3">الهاتف</th><th class="p-3">تاريخ الحجز</th><th class="p-3">نوع الكشف / السعر</th><th class="p-3 text-center">الإجراء</th></tr></thead>
                             <tbody id="pendingBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
@@ -972,17 +979,21 @@
                                 <div class="relative"><img src="${img}" alt="${c.doctorName}" class="w-14 h-14 rounded-2xl object-cover border-2 border-teal-500 shadow-md" onerror="this.src='https://placehold.co/100x100/1e293b/14b8a6?text=Doc'"><span class="w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full absolute -bottom-1 -right-1"></span></div>
                                 <div><span class="bg-teal-500/10 text-teal-300 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-teal-500/30"><i class="fa-solid ${c.icon || 'fa-user-doctor'} ml-1"></i> ${c.name}</span><h4 class="text-base font-extrabold text-white mt-1">${c.doctorName}</h4></div>
                             </div>
-                            <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">${c.price} ج.م</span>
+                            <div class="flex flex-col items-end gap-1">
+                                <span class="bg-slate-900 text-amber-400 border border-amber-400/30 text-[11px] font-black px-2.5 py-1 rounded-full whitespace-nowrap">كشف: ${c.price} ج.م</span>
+                                <span class="bg-teal-900/30 text-teal-300 border border-teal-500/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">إعادة: ${c.consultPrice || Math.round(c.price*0.4)} ج.م</span>
+                            </div>
                         </div>
                         <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
                             <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
                             <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-700/60">
-                        <button onclick="openClinicMapModal(${c.id})" class="bg-slate-700/80 hover:bg-slate-700 text-teal-300 font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-slate-600"><i class="fa-solid fa-map-location-dot"></i><span>الموقع</span></button>
-                        <button onclick="openInquiryModal(${c.id})" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-amber-500/30"><i class="fa-solid fa-comment-dots"></i><span>استفسار</span></button>
-                        <button onclick="openBookingModal(${c.id})" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2 rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-md"><i class="fa-solid fa-calendar-check"></i><span>حجز كشف</span></button>
+                    <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-700/60">
+                        <button onclick="openClinicMapModal(${c.id})" class="bg-slate-700/80 hover:bg-slate-700 text-teal-300 font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-slate-600"><i class="fa-solid fa-map-location-dot"></i><span>الموقع</span></button>
+                        <button onclick="openInquiryModal(${c.id})" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-amber-500/30"><i class="fa-solid fa-comment-dots"></i><span>استفسار</span></button>
+                        <button onclick="openBookingModal(${c.id})" class="bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-md"><i class="fa-solid fa-calendar-check"></i><span>حجز كشف</span></button>
+                        <button onclick="openTicketSearchModal()" class="bg-gradient-to-r from-teal-600/20 to-emerald-600/20 hover:from-teal-600/30 hover:to-emerald-600/30 text-teal-200 font-bold py-2.5 rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-teal-500/30"><i class="fa-solid fa-mobile-screen-button text-amber-400 animate-pulse"></i><span>تتبع دورك من البيت</span></button>
                     </div>
                 </div>`;
             }).join('');
@@ -1114,7 +1125,7 @@ ${customReply}
             if(input) input.value='';
         };
 
-        window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
+        window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending', repliedAt: i.status === 'pending' ? new Date().toISOString() : null }); } catch (e) { console.error(e); } };
         window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
 
         window.openBookingModal = function(clinicId) {
@@ -1361,36 +1372,79 @@ ${customReply}
             }
         }
 
-        function renderPendingRequestsTable() {
+                function renderPendingRequestsTable() {
             autoExpireOldBookings();
-
-            const tbody = document.getElementById('pendingBookingsTbody');
-            if (!tbody || !loggedInClinicId) return;
-            console.log('🔍 فلترة الحجوزات لـ عيادة', loggedInClinicId, 'من اصل', bookingsList.length, bookingsList);
-            // عرض ID العيادة الحالية في العنوان للمساعدة في الديباج
-            const titleEl = document.querySelector('#subTabPending h3, #subTabPending h4');
-            if(titleEl && !titleEl.innerHTML.includes('ID:')){
-                titleEl.innerHTML += ` <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">ID: ${loggedInClinicId}</span>`;
-            }
+            if(typeof autoExpireInquiries === 'function') autoExpireInquiries();
+            const todayTbody = document.getElementById('todayPendingTbody');
+            const futureTbody = document.getElementById('pendingBookingsTbody');
+            if ((!todayTbody && !futureTbody) || !loggedInClinicId) return;
+            const todayStr = new Date().toISOString().split('T')[0];
             const list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'pending');
-            document.getElementById('badgePendingCount').innerText = list.length;
-            const df = document.getElementById('filterPendingDate').value;
-            const display = df ? list.filter(b => b.date === df) : list;
-            if (display.length === 0) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد طلبات حجز معلقة حالياً.</td></tr>`; return; }
-            tbody.innerHTML = display.map(b => `
+            const badge = document.getElementById('badgePendingCount');
+            if(badge) badge.innerText = list.length;
+            const dfEl = document.getElementById('filterPendingDate');
+            const df = dfEl ? dfEl.value : '';
+            const filtered = df ? list.filter(b => b.date === df) : list;
+            const todayList = filtered.filter(b => b.date === todayStr);
+            const futureList = filtered.filter(b => b.date !== todayStr);
+            const todayCountEl = document.getElementById('todayPendingCount');
+            const futureCountEl = document.getElementById('futurePendingCount');
+            const todayLabel = document.getElementById('todayDateLabel');
+            if(todayCountEl) todayCountEl.innerText = todayList.length;
+            if(futureCountEl) futureCountEl.innerText = futureList.length;
+            if(todayLabel) todayLabel.innerText = '(' + todayStr + ')';
+            function rowHtml(b, showDate){
+                return `
                 <tr class="hover:bg-slate-800/60 border-b border-slate-800 transition">
                     <td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td>
                     <td class="p-3 font-bold text-white">${b.patientName} <span class="text-amber-400 font-mono text-[11px]">(${b.patientAge || '-'} سنة)</span><span class="block text-[10px] text-teal-300 font-normal"><i class="fa-solid fa-location-dot"></i> ${b.patientAddress || 'لم يحدد عنوان'}</span><span class="block text-[10px] text-amber-300/80 font-normal"><i class="fa-solid fa-wallet"></i> ${b.paymentMethod || 'كاش'}</span></td>
                     <td class="p-3 font-mono">${b.phone}</td>
-                    <td class="p-3 font-bold text-teal-300">${b.date}</td>
+                    ${showDate ? `<td class="p-3 font-bold text-teal-300">${b.date}</td>` : ''}
                     <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
                         <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
-                        <button onclick="openRejectBookingModal(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-ban"></i> رفض</button>
+                        <button onclick="openRejectBookingModal(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-ban"></i> رفض</button>
                     </td>
-                </tr>`).join('');
+                </tr>`;
+            }
+            if(todayTbody){
+                if(todayList.length === 0) todayTbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">لا توجد طلبات لليوم.</td></tr>`;
+                else todayTbody.innerHTML = todayList.map(b=> rowHtml(b, false)).join('');
+            }
+            if(futureTbody){
+                if(futureList.length === 0) futureTbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد طلبات منتظرة.</td></tr>`;
+                else futureTbody.innerHTML = futureList.map(b=> rowHtml(b, true)).join('');
+            }
         }
-
+        function autoExpireInquiries(){
+            const now = Date.now();
+            const ONE_DAY = 24*60*60*1000;
+            for(const inq of inquiriesList){
+                try{
+                    if(inq.status === 'replied'){
+                        const repliedTime = inq.repliedAt ? new Date(inq.repliedAt).getTime() : (inq.id || now);
+                        if(now - repliedTime > 2*60*1000){
+                            if(currentUser && db){
+                                import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js').then(m=>{
+                                    const ref = m.doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inq.id));
+                                    m.deleteDoc(ref).catch(()=>{});
+                                });
+                            }
+                        }
+                    } else if(inq.status === 'pending'){
+                        const created = inq.id || now;
+                        if(now - created > ONE_DAY){
+                            if(currentUser && db){
+                                import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js').then(m=>{
+                                    const ref = m.doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inq.id));
+                                    m.deleteDoc(ref).catch(()=>{});
+                                });
+                            }
+                        }
+                    }
+                }catch(e){}
+            }
+        }
         window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
         window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await updateDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error(err); window.showToast('❌ فشل الاعتماد!', '❌'); } };
         
@@ -1411,7 +1465,7 @@ ${customReply}
             _rejectBookingId = null;
         };
         window.confirmRejectBooking = async function(withWhatsApp){
-            if(!_rejectBookingId || !currentUser) return;
+            if(!_rejectBookingId || !db) { window.showToast('❌ قاعدة البيانات غير جاهزة', '❌'); return; }
             const selected = document.querySelector('input[name="rejectReason"]:checked');
             if(!selected){ window.showToast('⚠️ يرجى اختيار سبب الرفض!', '⚠️'); return; }
             let reason = selected.value;
