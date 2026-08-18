@@ -434,11 +434,47 @@
                 <h3 class="text-lg font-black text-white">دخول العيادات والانتظار</h3>
                 <p class="text-xs text-slate-400">سجل دخولك بالطبيب أو السكرتيرة</p>
             </div>
-            <form onsubmit="handleClinicLogin(event)" class="space-y-4">
+            <form onsubmit="handleClinicLogin(event)" class="space-y-4" autocomplete="off">
                 <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">البريد الإلكتروني *</label><input type="email" id="loginEmail" required placeholder="doctor1@mawaed.com" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <div class="space-y-1"><label class="text-xs text-slate-300 font-bold">كلمة المرور *</label><input type="password" id="loginPassword" required placeholder="••••••••" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></div>
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3 rounded-xl text-xs transition">تسجيل الدخول 🔓</button>
             </form>
+        </div>
+    </div>
+
+    <!-- REJECT BOOKING MODAL - سبب الرفض + واتساب -->
+    <div id="rejectBookingModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 w-full max-w-md rounded-3xl border border-rose-500/50 p-6 space-y-5 relative shadow-2xl">
+            <button onclick="closeRejectBookingModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="text-center space-y-1 border-b border-slate-700 pb-3">
+                <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl border border-rose-500/30 mx-auto flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-ban"></i></div>
+                <h3 class="text-base font-black text-white">رفض الحجز وإبلاغ المريض</h3>
+                <p id="rejectPatientName" class="text-xs text-slate-400 font-bold">المريض: -</p>
+                <p id="rejectPatientPhone" class="text-[11px] text-slate-500 font-mono">-</p>
+            </div>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-xs text-slate-300 font-black flex items-center gap-2"><i class="fa-solid fa-list-check text-rose-400"></i> اختر سبب الرفض *</label>
+                    <div class="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar" id="rejectReasonsList">
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="العيادة مغلقة اليوم - عطلة طارئة" class="accent-rose-500"><span>🏥 العيادة مغلقة اليوم - عطلة طارئة</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="الطبيب في إجازة" class="accent-rose-500"><span>👨‍⚕️ الطبيب في إجازة</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="اكتمال العدد اليوم - يرجى الحجز ليوم آخر" class="accent-rose-500"><span>🔢 اكتمال العدد - احجز يوم آخر</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="الموعد غير مناسب - يرجى اختيار موعد آخر" class="accent-rose-500"><span>📅 الموعد غير مناسب</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="رقم الهاتف غير صحيح - يرجى التأكد" class="accent-rose-500"><span>📞 رقم الهاتف غير صحيح</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="يرجى الاتصال بالعيادة للتوضيح" class="accent-rose-500"><span>☎️ يرجى الاتصال بالعيادة</span></label>
+                        <label class="flex items-center gap-2 p-3 bg-amber-900/30 border border-amber-500/40 rounded-xl cursor-pointer hover:border-amber-500/60 transition text-xs font-black"><input type="radio" name="rejectReason" value="other" class="accent-amber-500"><span>✏️ سبب آخر - أكتب بنفسي</span></label>
+                    </div>
+                </div>
+                <div id="customRejectReasonBox" class="hidden space-y-2">
+                    <label class="text-xs text-amber-300 font-black">✏️ اكتب السبب المخصص:</label>
+                    <textarea id="customRejectReason" rows="3" placeholder="مثال: الطبيب مسافر وسيعود السبت..." class="w-full p-3 bg-slate-900 border border-amber-500/40 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="confirmRejectBooking(false)" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-3.5 rounded-xl text-xs transition shadow-lg"><i class="fa-solid fa-ban ml-1"></i> رفض فقط</button>
+                    <button onclick="confirmRejectBooking(true)" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-3.5 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-1.5"><i class="fa-brands fa-whatsapp text-base"></i> رفض + واتساب</button>
+                </div>
+                <p class="text-[10px] text-slate-500 text-center leading-relaxed">سيظهر السبب للمريض عند تتبع حجزه، ولو اخترت واتساب سيتم فتح رسالة جاهزة فيها السبب والترحيب.</p>
+            </div>
         </div>
     </div>
 
@@ -978,35 +1014,89 @@
             } catch (err) { console.error(err); window.showToast('❌ فشل إرسال الاستفسار! تأكد من الاتصال وحاول مجدداً.', '❌'); }
         };
 
-        function renderInquiriesList() {
+                function renderInquiriesList() {
             const container = document.getElementById('inquiriesContainer');
             if (!container || !loggedInClinicId) return;
             const ci = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
             const badge = document.getElementById('badgeInquiriesCount');
             if (badge) badge.innerText = ci.filter(i => i.status === 'pending').length;
             if (ci.length === 0) { container.innerHTML = `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا توجد رسائل أو استفسارات حالياً.</p>`; return; }
+            const clinic = clinicsList.find(x=> Number(x.id) === Number(loggedInClinicId));
             container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
                 const ip = inq.status === 'pending';
-                const cp = (inq.phone || '').replace(/[^0-9]/g, '');
-                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40' : 'border-slate-800'} space-y-3">
+                const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+                const welcomeMsg = `مرحباً ${inq.patientName} 👋`;
+                const clinicName = clinic?.name || 'العيادة';
+                const doctorName = clinic?.doctorName || '';
+                // رسالة ترحيب + رد جاهز للواتساب
+                const waReplyText = encodeURIComponent(`${welcomeMsg}
+
+أهلاً بك في ${clinicName} - ${doctorName}
+
+بخصوص استفسارك:
+"${inq.message}"
+
+ردنا:
+[اكتب ردك هنا]
+
+شكراً لتواصلك معنا 🌹
+${clinicName}`);
+                const waDirect = `https://wa.me/${cleanPhone}?text=${waReplyText}`;
+                const waSimple = `https://wa.me/${cleanPhone}`;
+                return `<div class="bg-slate-900 p-4 rounded-2xl border ${ip ? 'border-amber-500/40 bg-amber-950/10' : 'border-slate-800'} space-y-3 shadow-sm">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-800 pb-2">
-                        <div class="flex items-center gap-2"><span class="w-8 h-8 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-xs font-bold text-white">${inq.patientName}</h5><p class="text-[10px] text-slate-400 font-mono">${inq.phone}</p></div></div>
-                        <div class="flex items-center gap-2"><span class="text-[10px] text-slate-500 font-mono">${inq.date} - ${inq.time || ''}</span><span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[10px] font-bold px-2 py-0.5 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span></div>
+                        <div class="flex items-center gap-2"><span class="w-9 h-9 ${ip ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'} rounded-xl flex items-center justify-center text-xs font-bold"><i class="fa-solid ${ip ? 'fa-envelope' : 'fa-circle-check'}"></i></span><div><h5 class="text-sm font-black text-white">${inq.patientName}</h5><p class="text-[11px] text-slate-400 font-mono">${inq.phone} • ${inq.date} ${inq.time || ''}</p></div></div>
+                        <span class="${ip ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'} text-[11px] font-black px-3 py-1 rounded-full border">${ip ? 'جديد ⏳' : 'تم الرد ✅'}</span>
                     </div>
-                    <p class="text-xs text-slate-200 leading-relaxed pr-2 font-medium bg-slate-800/50 p-3 rounded-xl border border-slate-800">"${inq.message}"</p>
-                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <div class="space-y-2">
+                        <p class="text-[11px] text-slate-500 font-bold">📩 نص الاستفسار:</p>
+                        <p class="text-sm text-slate-100 leading-relaxed pr-2 font-bold bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/60">"${inq.message}"</p>
+                    </div>
+                    <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/40 space-y-2">
+                        <p class="text-[11px] text-teal-300 font-black flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-emerald-400"></i> الرد عبر الواتساب:</p>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <a href="${waDirect}" target="_blank" onclick="setTimeout(()=>{ window.toggleInquiryStatus(${inq.id}); }, 1500)" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white border border-emerald-500/40 text-xs font-black px-3 py-3 rounded-xl transition flex items-center justify-center gap-2 shadow-lg"><i class="fa-brands fa-whatsapp text-base"></i><span>✨ رد واتساب جاهز باسم المريض والترحيب</span></a>
+                            <a href="${waSimple}" target="_blank" class="bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 text-xs font-bold px-4 py-3 rounded-xl transition flex items-center justify-center gap-1.5"><i class="fa-brands fa-whatsapp"></i> واتساب مباشر</a>
+                        </div>
+                        <div class="flex items-center gap-2 pt-1">
+                            <input type="text" id="replyInput_${inq.id}" placeholder="اكتب رد سريع هنا ثم اضغط واتساب..." class="flex-1 p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500">
+                            <button onclick="sendCustomWhatsAppReply(${inq.id})" class="bg-teal-600 hover:bg-teal-500 text-white font-bold px-3 py-2.5 rounded-xl text-xs"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-1">
                         <div class="flex items-center gap-2">
-                            <a href="https://wa.me/${cp}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5"><i class="fa-brands fa-whatsapp text-emerald-400"></i><span>واتساب</span></a>
-                            <a href="tel:${cp}" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold px-3 py-1.5 rounded-xl transition flex items-center gap-1.5 border border-slate-700"><i class="fa-solid fa-phone text-teal-400"></i><span>اتصال</span></a>
+                            <a href="tel:${cleanPhone}" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700"><i class="fa-solid fa-phone"></i> اتصال</a>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="toggleInquiryStatus(${inq.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold px-3 py-1.5 rounded-xl transition border border-slate-700">${ip ? 'تحديد كـ "تم الرد" ✅' : 'إعادة كـ "جديد" ⏳'}</button>
-                            <button onclick="deleteInquiry(${inq.id})" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 text-[11px] font-bold px-2.5 py-1.5 rounded-xl transition border border-rose-500/30"><i class="fa-solid fa-trash"></i></button>
+                            <button onclick="toggleInquiryStatus(${inq.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700">${ip ? 'تم الرد ✅' : 'جديد ⏳'}</button>
+                            <button onclick="deleteInquiry(${inq.id})" class="bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-[11px] font-bold px-3 py-2 rounded-xl transition border border-rose-500/30"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
             }).join('');
         }
+
+        window.sendCustomWhatsAppReply = function(inqId){
+            const inq = inquiriesList.find(x=> x.id === inqId);
+            if(!inq) return;
+            const input = document.getElementById(`replyInput_${inqId}`);
+            const customReply = input ? input.value.trim() : '';
+            if(!customReply){ window.showToast('اكتب الرد أولاً!', '⚠️'); return; }
+            const clinic = clinicsList.find(x=> Number(x.id) === Number(loggedInClinicId));
+            const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+            const msg = encodeURIComponent(`مرحباً ${inq.patientName} 👋
+
+من ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}
+
+بخصوص: "${inq.message}"
+
+${customReply}
+
+شكراً لتواصلك 🌹`);
+            window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
+            window.toggleInquiryStatus(inqId);
+            if(input) input.value='';
+        };
 
         window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending' }); } catch (e) { console.error(e); } };
         window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
@@ -1280,14 +1370,61 @@
                     <td class="p-3">${b.type} <span class="text-amber-300 font-bold">(${b.fee})</span></td>
                     <td class="p-3 text-center flex justify-center gap-2">
                         <button onclick="approveBooking(${b.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-check"></i> اعتماد</button>
-                        <button onclick="cancelBooking(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-2 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="openRejectBookingModal(${b.id})" class="bg-rose-600/30 hover:bg-rose-600 text-rose-300 hover:text-white font-bold px-3 py-1.5 rounded-xl transition text-[11px]"><i class="fa-solid fa-ban"></i> رفض</button>
                     </td>
                 </tr>`).join('');
         }
 
         window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
         window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await updateDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error(err); window.showToast('❌ فشل الاعتماد!', '❌'); } };
-        window.cancelBooking = async (id) => { if (!currentUser) return; try { await updateDoc(getPublicDoc('bookings', id), { status: 'cancelled' }); } catch (e) { console.error(e); } };
+        
+        let _rejectBookingId = null;
+        window.openRejectBookingModal = function(id){
+            const b = bookingsList.find(x=> x.id === id);
+            if(!b) return;
+            _rejectBookingId = id;
+            document.getElementById('rejectPatientName').innerText = `المريض: ${b.patientName} - ${b.refCode}`;
+            document.getElementById('rejectPatientPhone').innerText = `📞 ${b.phone} - 📅 ${b.date} - ${b.type}`;
+            document.querySelectorAll('input[name="rejectReason"]').forEach(r=> r.checked=false);
+            const cr = document.getElementById('customRejectReason'); if(cr) cr.value='';
+            const box = document.getElementById('customRejectReasonBox'); if(box) box.classList.add('hidden');
+            document.getElementById('rejectBookingModal').classList.remove('hidden');
+        };
+        window.closeRejectBookingModal = function(){
+            document.getElementById('rejectBookingModal').classList.add('hidden');
+            _rejectBookingId = null;
+        };
+        window.confirmRejectBooking = async function(withWhatsApp){
+            if(!_rejectBookingId || !currentUser) return;
+            const selected = document.querySelector('input[name="rejectReason"]:checked');
+            if(!selected){ window.showToast('⚠️ يرجى اختيار سبب الرفض!', '⚠️'); return; }
+            let reason = selected.value;
+            if(reason === 'other'){
+                const custom = document.getElementById('customRejectReason').value.trim();
+                if(!custom){ window.showToast('اكتب السبب المخصص أولاً!', '⚠️'); return; }
+                reason = custom;
+            }
+            const b = bookingsList.find(x=> x.id === _rejectBookingId);
+            if(!b) return;
+            try{
+                await updateDoc(getPublicDoc('bookings', _rejectBookingId), { 
+                    status: 'cancelled', 
+                    rejectionReason: reason,
+                    rejectedAt: new Date().toISOString(),
+                    rejectedBy: currentClinicRole || 'secretary'
+                });
+                window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫');
+                window.closeRejectBookingModal();
+                if(withWhatsApp){
+                    const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
+                    const phone = (b.phone || '').replace(/[^0-9]/g,'');
+                    const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋\n\nمن ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}\n\nنأسف، تم رفض حجزك بتاريخ ${b.date}\nكود الحجز: ${b.refCode}\n\n📌 سبب الرفض:\n${reason}\n\nيمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.\n\nشكراً لتفهمك 🙏`);
+                    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                }
+            }catch(e){ console.error(e); window.showToast('❌ فشل رفض الحجز!', '❌'); }
+        };
+        window.cancelBooking = window.openRejectBookingModal;
+        document.addEventListener('change', function(e){ if(e.target.name === 'rejectReason'){ const box = document.getElementById('customRejectReasonBox'); if(!box) return; if(e.target.value === 'other') box.classList.remove('hidden'); else box.classList.add('hidden'); } });
         window.addDrugToRx = function() { const n = document.getElementById('rxDrugName').value.trim(); if (!n) { window.showToast('يرجى كتابة اسم الدواء.', '⚠️'); return; } currentRxDrugs.push({ name: n, dose: document.getElementById('rxDrugDose').value.trim() || 'حسب الإرشادات' }); document.getElementById('rxDrugName').value = ''; document.getElementById('rxDrugDose').value = ''; renderRxDrugsList(); };
         function renderRxDrugsList() { const c = document.getElementById('rxDrugsContainer'); if (!c) return; if (!currentRxDrugs.length) { c.innerHTML = `<p class="text-xs text-slate-500 italic p-3 bg-slate-900/40 rounded-xl text-center">لم يتم إضافة أدوية.</p>`; return; } c.innerHTML = currentRxDrugs.map((d, i) => `<div class="flex justify-between items-center bg-slate-900 p-2.5 rounded-xl border border-slate-700 text-xs"><div><span class="font-extrabold text-amber-400">${i + 1}. ${d.name}</span><span class="text-slate-400 font-bold block text-[11px]">${d.dose}</span></div><button onclick="removeDrugFromRx(${i})" class="text-rose-400 hover:text-rose-300 p-1"><i class="fa-solid fa-trash"></i></button></div>`).join(''); }
         window.removeDrugFromRx = (i) => { currentRxDrugs.splice(i, 1); renderRxDrugsList(); };
@@ -1419,8 +1556,13 @@
             const ct = getActiveCurrentTurn(found.clinicId, found.date);
             const mqn = found.queueNumber || 0;
             const ahead = Math.max(0, mqn - ct);
-            let sb = '', sm = '';
+            let sb = '', sm = '', extraHtml = '';
             if (found.status === 'pending') { sb = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold">بانتظار اعتماد السكرتارية ⏳</span>`; sm = 'طلبك قيد المراجعة، سيتم تحديد رقم دورك فور الاعتماد.'; }
+            else if (found.status === 'cancelled') { 
+                sb = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الرفض ❌</span>`; 
+                sm = 'نأسف، تم رفض حجزك. راجع السبب أدناه.';
+                extraHtml = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2"><p class="text-xs font-black text-rose-300">📌 سبب الرفض:</p><p class="text-sm font-bold text-white bg-slate-900 p-3 rounded-xl border border-rose-500/20">${found.rejectionReason || 'لم يتم تحديد السبب'}</p>${found.rejectedAt ? `<p class="text-[10px] text-slate-500">${new Date(found.rejectedAt).toLocaleString('ar-EG')}</p>` : ''}</div>`;
+            }
             else if (found.status === 'completed') { sb = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الفحص ✅</span>`; sm = 'نتمنى لك دوام الصحة!'; }
             else if (found.status === 'approved') {
                 if (mqn === ct) { sb = `<span class="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-xs animate-bounce">🔥 الدور عليك الآن!</span>`; sm = 'توجه فوراً لغرفة الفحص!'; }
@@ -1430,6 +1572,7 @@
             res.innerHTML = `<div class="bg-slate-900 p-5 rounded-2xl border border-teal-500/30 space-y-4 shadow-xl">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-3"><div><span class="text-[10px] text-teal-400 font-bold block">الكود المرجعي</span><span class="font-mono font-black text-amber-400 text-base">${found.refCode}</span></div><div>${sb}</div></div>
                 <div class="grid grid-cols-2 gap-3 text-xs"><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">المريض</span><span class="font-bold text-white">${found.patientName} (${found.patientAge || '-'} سنة)</span></div><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">طريقة الدفع</span><span class="font-bold text-amber-300">${found.paymentMethod || 'كاش'}</span></div></div>
+                ${extraHtml}
                 ${found.status === 'approved' ? `<div class="grid grid-cols-3 gap-2 text-center"><div class="bg-slate-800/90 p-3 rounded-xl border border-amber-500/30"><span class="text-[10px] text-amber-300 font-bold block">رقم دورك</span><span class="font-mono font-black text-amber-400 text-xl">#${mqn}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-teal-500/30"><span class="text-[10px] text-teal-300 font-bold block">الدور الحالي</span><span class="font-mono font-black text-teal-400 text-xl">#${ct}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-emerald-500/30"><span class="text-[10px] text-emerald-300 font-bold block">قبلك</span><span class="font-mono font-black text-emerald-400 text-xl">${ahead}</span></div></div>` : ''}
                 <div class="p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl text-center text-teal-200 font-bold text-xs"><i class="fa-solid fa-circle-info text-teal-400 ml-1"></i>${sm}</div>
             </div>`;
