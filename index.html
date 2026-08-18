@@ -213,14 +213,38 @@
                 </div>
             </div>
 
-            <!-- APPROVED -->
+            <!-- APPROVED - مع بحث -->
             <div id="subTabApproved" class="subtab-content hidden space-y-4">
                 <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
-                    <h4 class="text-sm font-bold text-teal-300">سجل كافة الحجوزات المؤكدة والمعتمدة</h4>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-clipboard-check"></i> سجل كافة الحجوزات المؤكدة والمعتمدة</h4>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" id="approvedSearchInput" oninput="renderApprovedBookingsTable()" placeholder="ابحث بالاسم، الهاتف، الكود، التاريخ..." class="w-full p-2.5 pr-9 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500">
+                                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            </div>
+                            <span id="approvedCountBadge" class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">0</span>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">رقم الدور</th><th class="p-3">حالة الكشف</th></tr></thead>
+                            <thead class="bg-slate-900 text-teal-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">رقم الدور</th><th class="p-3">حالة الكشف</th><th class="p-3 text-center">واتساب</th></tr></thead>
                             <tbody id="approvedBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
+                        </table>
+                    </div>
+                    <p class="text-[10px] text-slate-500 text-center">يمكنك البحث باسم المريض، رقم الهاتف، الكود المرجعي، أو تاريخ الحجز</p>
+                </div>
+
+                <!-- سجل المرفوضة أيضاً للسكرتيرة -->
+                <div class="bg-rose-950/10 p-5 rounded-2xl border border-rose-500/20 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h4 class="text-sm font-bold text-rose-300 flex items-center gap-2"><i class="fa-solid fa-ban"></i> سجل الحجوزات المرفوضة</h4>
+                        <input type="text" id="rejectedSearchInput" oninput="renderRejectedBookingsTable()" placeholder="ابحث في المرفوضة..." class="p-2.5 bg-slate-900 border border-rose-500/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500 w-full sm:w-64">
+                    </div>
+                    <div class="overflow-x-auto rounded-2xl border border-rose-500/20">
+                        <table class="w-full text-right text-xs text-slate-300">
+                            <thead class="bg-slate-900 text-rose-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">سبب الرفض</th><th class="p-3">تاريخ الرفض</th></tr></thead>
+                            <tbody id="rejectedBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
                 </div>
@@ -1636,11 +1660,56 @@ ${reason}
 
         function renderApprovedBookingsTable() {
             const tbody = document.getElementById('approvedBookingsTbody');
+            const badge = document.getElementById('approvedCountBadge');
             if (!tbody || !loggedInClinicId) return;
-            const list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && !['pending', 'cancelled'].includes(b.status));
-            if (!list.length) { tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات معتمدة.</td></tr>`; return; }
-            tbody.innerHTML = list.map(b => `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}<span class="block text-[10px] text-teal-300 font-normal">${b.patientAddress || ''}</span></td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-teal-300">${b.date}</td><td class="p-3 font-mono font-black text-amber-400">#${b.queueNumber || '-'}</td><td class="p-3 font-bold text-emerald-400">${b.status === 'completed' ? 'تم الكشف ✅' : 'بالانتظار ⏳'}</td></tr>`).join('');
+            let list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && !['pending', 'cancelled'].includes(b.status));
+            // بحث
+            const searchInput = document.getElementById('approvedSearchInput');
+            const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            if(q){
+                list = list.filter(b => 
+                    (b.patientName || '').toLowerCase().includes(q) ||
+                    (b.phone || '').toLowerCase().includes(q) ||
+                    (b.refCode || '').toLowerCase().includes(q) ||
+                    (b.date || '').toLowerCase().includes(q) ||
+                    (b.patientAddress || '').toLowerCase().includes(q)
+                );
+            }
+            if(badge) badge.innerText = list.length;
+            if (!list.length) { 
+                if(q) tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-amber-400 font-bold bg-amber-500/5">لا توجد نتائج للبحث عن "${q}"</td></tr>`;
+                else tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات معتمدة.</td></tr>`; 
+                return; 
+            }
+            tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => {
+                const waNum = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone) : (b.phone||'').replace(/[^0-9]/g,'');
+                return `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}<span class="block text-[10px] text-teal-300 font-normal">${b.patientAddress || ''}</span></td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-teal-300">${b.date}</td><td class="p-3 font-mono font-black text-amber-400">#${b.queueNumber || '-'}</td><td class="p-3 font-bold text-emerald-400">${b.status === 'completed' ? 'تم الكشف ✅' : 'بالانتظار ⏳'}</td><td class="p-3 text-center"><a href="https://wa.me/${waNum}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-lg text-[10px]"><i class="fa-brands fa-whatsapp"></i></a></td></tr>`;
+            }).join('');
+            // حدث جدول المرفوضة أيضاً
+            if(typeof renderRejectedBookingsTable === 'function') renderRejectedBookingsTable();
         }
+
+        function renderRejectedBookingsTable(){
+            const tbody = document.getElementById('rejectedBookingsTbody');
+            if(!tbody || !loggedInClinicId) return;
+            let list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'cancelled');
+            const searchInput = document.getElementById('rejectedSearchInput');
+            const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            if(q){
+                list = list.filter(b => 
+                    (b.patientName || '').toLowerCase().includes(q) ||
+                    (b.phone || '').toLowerCase().includes(q) ||
+                    (b.refCode || '').toLowerCase().includes(q) ||
+                    (b.rejectionReason || '').toLowerCase().includes(q)
+                );
+            }
+            if(!list.length){
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات مرفوضة${q ? ` للبحث "${q}"` : ''}.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}</td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-slate-400">${b.date}</td><td class="p-3 text-rose-300 font-bold text-[11px]">${b.rejectionReason || '-'}</td><td class="p-3 text-[10px] text-slate-500 font-mono">${b.rejectedAt ? new Date(b.rejectedAt).toLocaleString('ar-EG') : '-'}</td></tr>`).join('');
+        }
+
 
         function renderFinanceTab() {
             const cb = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status !== 'cancelled');
@@ -1678,7 +1747,7 @@ ${reason}
             const q = document.getElementById('searchTicketInput').value.trim().toLowerCase();
             const res = document.getElementById('ticketSearchResult');
             if (!q) return;
-            const found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').includes(q));
+            const qClean = q.replace(/[^0-9]/g,''); const found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').toLowerCase().includes(q) || (b.phone || '').replace(/[^0-9]/g,'').includes(qClean) || (qClean && (b.phone || '').replace(/[^0-9]/g,'').includes(qClean)) );
             res.classList.remove('hidden');
             if (!found) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
             const ct = getActiveCurrentTurn(found.clinicId, found.date);
