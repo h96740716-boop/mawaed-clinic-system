@@ -98,7 +98,7 @@
                 <div class="relative z-10 max-w-2xl space-y-4">
                     <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-300 text-xs font-extrabold">
                         <i class="fa-solid fa-bolt text-amber-400 text-xs animate-bounce"></i>
-                        مربوط بـ Firebase - تصل الحجوزات فورياً للعيادة
+                        منظومة حجز ذكية وسريعة
                     </span>
                     <h2 class="text-2xl sm:text-4xl font-black text-white leading-tight">احجز موعد كشفك وتتبع دورك مباشرة من بيتك</h2>
                     <p class="text-slate-300 text-sm leading-relaxed">اختر العيادة، احجز كشفك، وتابع دورك المباشر في الانتظار من موبايلك!</p>
@@ -1037,10 +1037,19 @@
             return p;
         }
 
-        function renderInquiriesList() {
+                function renderInquiriesList() {
+            if(typeof autoExpireInquiries === 'function') autoExpireInquiries();
             const container = document.getElementById('inquiriesContainer');
             if (!container || !loggedInClinicId) return;
-            const ci = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
+            const now = Date.now();
+            const ONE_DAY = 24*60*60*1000;
+            let ci = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
+            ci = ci.filter(i => {
+                if(i.status === 'replied') return false;
+                const created = i.id || now;
+                if(now - created > ONE_DAY) return false;
+                return true;
+            });
             const badge = document.getElementById('badgeInquiriesCount');
             if (badge) badge.innerText = ci.filter(i => i.status === 'pending').length;
             if (ci.length === 0) { container.innerHTML = `<p class="text-xs text-slate-500 italic text-center p-6 bg-slate-900/40 rounded-2xl">لا توجد رسائل أو استفسارات حالياً.</p>`; return; }
@@ -1121,10 +1130,38 @@ ${customReply}
 
 شكراً لتواصلك 🌹`);
             window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
-            window.toggleInquiryStatus(inqId);
+            window.handleInquiryWhatsAppReply = async function(inqId){
+            const inq = inquiriesList.find(x=> x.id === inqId);
+            if(!inq) return;
+            inquiriesList = inquiriesList.filter(x=> x.id !== inqId);
+            renderInquiriesList();
+            window.showToast('✅ تم الرد وحذف الاستفسار', '✅');
+            try{
+                if(db && appId){
+                    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inqId));
+                    await deleteDoc(ref);
+                }
+            }catch(e){ console.error(e); }
+        };
+        window.toggleInquiryStatus(inqId);
             if(input) input.value='';
         };
 
+        window.handleInquiryWhatsAppReply = async function(inqId){
+            const inq = inquiriesList.find(x=> x.id === inqId);
+            if(!inq) return;
+            inquiriesList = inquiriesList.filter(x=> x.id !== inqId);
+            renderInquiriesList();
+            window.showToast('✅ تم الرد وحذف الاستفسار', '✅');
+            try{
+                if(db && appId){
+                    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inqId));
+                    await deleteDoc(ref);
+                }
+            }catch(e){ console.error(e); }
+        };
         window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending', repliedAt: i.status === 'pending' ? new Date().toISOString() : null }); } catch (e) { console.error(e); } };
         window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
 
@@ -1423,7 +1460,7 @@ ${customReply}
                 try{
                     if(inq.status === 'replied'){
                         const repliedTime = inq.repliedAt ? new Date(inq.repliedAt).getTime() : (inq.id || now);
-                        if(now - repliedTime > 2*60*1000){
+                        if(now - repliedTime > 5*1000){
                             if(currentUser && db){
                                 import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js').then(m=>{
                                     const ref = m.doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inq.id));
@@ -1464,34 +1501,55 @@ ${customReply}
             document.getElementById('rejectBookingModal').classList.add('hidden');
             _rejectBookingId = null;
         };
-        window.confirmRejectBooking = async function(withWhatsApp){
-            if(!_rejectBookingId || !db) { window.showToast('❌ قاعدة البيانات غير جاهزة', '❌'); return; }
+                window.confirmRejectBooking = async function(withWhatsApp){
+            if(!_rejectBookingId){
+                window.showToast('❌ خطأ: لا يوجد حجز محدد', '❌');
+                return;
+            }
             const selected = document.querySelector('input[name="rejectReason"]:checked');
             if(!selected){ window.showToast('⚠️ يرجى اختيار سبب الرفض!', '⚠️'); return; }
             let reason = selected.value;
             if(reason === 'other'){
-                const custom = document.getElementById('customRejectReason').value.trim();
+                const customEl = document.getElementById('customRejectReason');
+                const custom = customEl ? customEl.value.trim() : '';
                 if(!custom){ window.showToast('اكتب السبب المخصص أولاً!', '⚠️'); return; }
                 reason = custom;
             }
-            const b = bookingsList.find(x=> x.id === _rejectBookingId);
-            if(!b) return;
+            const b = bookingsList.find(x=> String(x.id) === String(_rejectBookingId) || x.id === _rejectBookingId);
+            if(!b){ window.showToast('❌ الحجز غير موجود', '❌'); return; }
+            // افتح واتساب فوراً قبل أي await لتجنب حظر المتصفح
+            if(withWhatsApp){
+                const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
+                const phone = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone || '') : (b.phone || '').replace(/[^0-9]/g,'');
+                const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋
+
+من ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}
+
+نأسف، تم رفض حجزك بتاريخ ${b.date}
+كود الحجز: ${b.refCode}
+
+📌 سبب الرفض:
+${reason}
+
+يمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.
+
+شكراً لتفهمك 🙏`);
+                const waUrl = `https://wa.me/${phone}?text=${msg}`;
+                window.open(waUrl, '_blank');
+            }
             try{
-                await updateDoc(getPublicDoc('bookings', _rejectBookingId), { 
-                    status: 'cancelled', 
-                    rejectionReason: reason,
-                    rejectedAt: new Date().toISOString(),
-                    rejectedBy: currentClinicRole || 'secretary'
-                });
-                window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫');
-                window.closeRejectBookingModal();
-                if(withWhatsApp){
-                    const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
-                    const phone = toWhatsAppNumber(b.phone || '');
-                    const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋\n\nمن ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}\n\nنأسف، تم رفض حجزك بتاريخ ${b.date}\nكود الحجز: ${b.refCode}\n\n📌 سبب الرفض:\n${reason}\n\nيمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.\n\nشكراً لتفهمك 🙏`);
-                    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+                if(db && appId){
+                    const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(_rejectBookingId));
+                    await updateDoc(ref, { status: 'cancelled', rejectionReason: reason, rejectedAt: new Date().toISOString(), rejectedBy: currentClinicRole || 'secretary' });
+                } else {
+                    b.status = 'cancelled';
+                    b.rejectionReason = reason;
                 }
-            }catch(e){ console.error(e); window.showToast('❌ فشل رفض الحجز!', '❌'); }
+                window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫');
+                renderPendingRequestsTable();
+            }catch(e){ console.error(e); b.status='cancelled'; b.rejectionReason=reason; renderPendingRequestsTable(); window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫'); }
+            window.closeRejectBookingModal();
         };
         window.cancelBooking = window.openRejectBookingModal;
         document.addEventListener('change', function(e){ if(e.target.name === 'rejectReason'){ const box = document.getElementById('customRejectReasonBox'); if(!box) return; if(e.target.value === 'other') box.classList.remove('hidden'); else box.classList.add('hidden'); } });
