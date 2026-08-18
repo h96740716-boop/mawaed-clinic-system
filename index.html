@@ -1014,7 +1014,19 @@
             } catch (err) { console.error(err); window.showToast('❌ فشل إرسال الاستفسار! تأكد من الاتصال وحاول مجدداً.', '❌'); }
         };
 
-                function renderInquiriesList() {
+        
+        // تحويل رقم مصري 010... إلى صيغة واتساب الدولية 2010...
+        function toWhatsAppNumber(raw){
+            if(!raw) return '';
+            let p = (raw+'').replace(/[^0-9]/g,'');
+            if(!p) return '';
+            if(p.startsWith('20') && p.length >= 12) return p;
+            if(p.startsWith('0') && p.length === 11) return '2' + p;
+            if(p.startsWith('1') && p.length === 10) return '20' + p;
+            return p;
+        }
+
+        function renderInquiriesList() {
             const container = document.getElementById('inquiriesContainer');
             if (!container || !loggedInClinicId) return;
             const ci = inquiriesList.filter(i => Number(i.clinicId) === Number(loggedInClinicId));
@@ -1024,7 +1036,9 @@
             const clinic = clinicsList.find(x=> Number(x.id) === Number(loggedInClinicId));
             container.innerHTML = ci.slice().sort((a, b) => b.id - a.id).map(inq => {
                 const ip = inq.status === 'pending';
-                const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+                const rawPhone = (inq.phone || '');
+                const cleanPhone = toWhatsAppNumber(rawPhone);
+                const displayPhone = toWhatsAppNumber(inq.phone || '');
                 const welcomeMsg = `مرحباً ${inq.patientName} 👋`;
                 const clinicName = clinic?.name || 'العيادة';
                 const doctorName = clinic?.doctorName || '';
@@ -1065,7 +1079,7 @@ ${clinicName}`);
                     </div>
                     <div class="flex items-center justify-between gap-2 pt-1">
                         <div class="flex items-center gap-2">
-                            <a href="tel:${cleanPhone}" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700"><i class="fa-solid fa-phone"></i> اتصال</a>
+                            <a href="tel:${displayPhone || cleanPhone}" class="bg-slate-800 hover:bg-slate-700 text-teal-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700"><i class="fa-solid fa-phone"></i> اتصال</a>
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="toggleInquiryStatus(${inq.id})" class="bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold px-3 py-2 rounded-xl transition border border-slate-700">${ip ? 'تم الرد ✅' : 'جديد ⏳'}</button>
@@ -1083,7 +1097,9 @@ ${clinicName}`);
             const customReply = input ? input.value.trim() : '';
             if(!customReply){ window.showToast('اكتب الرد أولاً!', '⚠️'); return; }
             const clinic = clinicsList.find(x=> Number(x.id) === Number(loggedInClinicId));
-            const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+            const rawPhone = (inq.phone || '');
+                const cleanPhone = toWhatsAppNumber(rawPhone);
+                const displayPhone = toWhatsAppNumber(inq.phone || '');
             const msg = encodeURIComponent(`مرحباً ${inq.patientName} 👋
 
 من ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}
@@ -1417,7 +1433,7 @@ ${customReply}
                 window.closeRejectBookingModal();
                 if(withWhatsApp){
                     const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
-                    const phone = (b.phone || '').replace(/[^0-9]/g,'');
+                    const phone = toWhatsAppNumber(b.phone || '');
                     const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋\n\nمن ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}\n\nنأسف، تم رفض حجزك بتاريخ ${b.date}\nكود الحجز: ${b.refCode}\n\n📌 سبب الرفض:\n${reason}\n\nيمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.\n\nشكراً لتفهمك 🙏`);
                     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
                 }
