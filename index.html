@@ -143,7 +143,7 @@
             <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800 custom-scrollbar">
                 <button onclick="switchSubTab('pending')" id="tabBtnPending" class="subtab-btn bg-teal-600 text-white font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-clock"></i><span>الطلبات المعلقة</span><span id="badgePendingCount" class="bg-slate-900 text-teal-300 px-2 py-0.5 rounded-full text-[10px]">0</span></button>
                 <button onclick="switchSubTab('queue')" id="tabBtnQueue" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-users-line"></i><span>شاشة الانتظار ونطق الدور</span></button>
-                <button onclick="switchSubTab('rejected')" id="tabBtnRejected" class="subtab-btn bg-slate-800 text-rose-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-rose-500/20"><i class="fa-solid fa-ban"></i><span>سجل المرفوضة</span><span id="badgeRejectedCount" class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span></button>
+                <button onclick="switchSubTab('rejected')" id="tabBtnRejected" class="subtab-btn bg-slate-800 text-rose-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs border border-rose-500/20"><i class="fa-solid fa-ban"></i><span>المرفوضة</span><span id="badgeRejectedCount" class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span></button>
                 <button onclick="switchSubTab('approved')" id="tabBtnApproved" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-circle-check"></i><span>سجل الحجوزات المعتمدة</span></button>
                 <button onclick="switchSubTab('inquiries')" id="tabBtnInquiries" class="subtab-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-comments"></i><span>الاستفسارات</span><span id="badgeInquiriesCount" class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold">0</span></button>
                 <button id="tabBtnPrescription" onclick="switchSubTab('prescription')" class="subtab-btn bg-amber-500 text-slate-950 font-black px-4 py-2.5 rounded-xl transition flex items-center gap-2 whitespace-nowrap text-xs"><i class="fa-solid fa-prescription-bottle-medical"></i><span>الروشتة الطبية (Rx)</span></button>
@@ -214,18 +214,18 @@
                 </div>
             </div>
 
-            <!-- APPROVED - مع بحث فوري -->
+            <!-- APPROVED - مع بحث -->
             <div id="subTabApproved" class="subtab-content hidden space-y-4">
                 <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/60 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <h4 class="text-sm font-bold text-teal-300 flex items-center gap-2"><i class="fa-solid fa-clipboard-check"></i> سجل الحجوزات المعتمدة</h4>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative flex-1 sm:w-72">
-                                <input type="text" id="approvedSearchInput" oninput="renderApprovedBookingsTable()" onkeyup="renderApprovedBookingsTable()" placeholder="ابحث بالاسم، الهاتف، الكود..." class="w-full p-2.5 pr-9 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" id="approvedSearchInput" oninput="renderApprovedBookingsTable()" placeholder="ابحث بالاسم، الهاتف، الكود..." class="w-full p-2.5 pr-9 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500">
                                 <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                             </div>
                             <span id="approvedCountBadge" class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">0</span>
-                            <button onclick="clearApprovedSearch()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-2.5 py-1.5 rounded-xl">مسح</button>
+                            <button onclick="clearApprovedSearch()" class="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg">مسح</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-slate-700/60">
@@ -237,23 +237,23 @@
                 </div>
             </div>
 
-            <!-- REJECTED - سجل منفصل جنب المعتمدة -->
+            <!-- REJECTED - منفصل -->
             <div id="subTabRejected" class="subtab-content hidden space-y-4">
                 <div class="bg-rose-950/10 p-5 rounded-2xl border border-rose-500/20 space-y-4">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h4 class="text-sm font-bold text-rose-300 flex items-center gap-2"><i class="fa-solid fa-ban"></i> سجل الحجوزات المرفوضة <span class="text-[10px] text-slate-400 font-normal">- منفصل عن المعتمدة</span></h4>
+                        <h4 class="text-sm font-bold text-rose-300 flex items-center gap-2"><i class="fa-solid fa-ban"></i> سجل الحجوزات المرفوضة</h4>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative flex-1 sm:w-72">
-                                <input type="text" id="rejectedSearchInput" oninput="renderRejectedBookingsTable()" onkeyup="renderRejectedBookingsTable()" placeholder="ابحث بالاسم، الهاتف، سبب الرفض..." class="w-full p-2.5 pr-9 bg-slate-900 border border-rose-500/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500">
+                            <div class="relative flex-1 sm:w-64">
+                                <input type="text" id="rejectedSearchInput" oninput="renderRejectedBookingsTable()" placeholder="ابحث بالاسم، الهاتف، سبب الرفض..." class="w-full p-2.5 pr-9 bg-slate-900 border border-rose-500/20 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500">
                                 <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-rose-300/50 text-xs"></i>
                             </div>
                             <span id="rejectedCountBadge" class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1.5 rounded-xl text-xs font-bold">0</span>
-                            <button onclick="clearRejectedSearch()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-2.5 py-1.5 rounded-xl">مسح</button>
+                            <button onclick="clearRejectedSearch()" class="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded-lg">مسح</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto rounded-2xl border border-rose-500/20">
                         <table class="w-full text-right text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-rose-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">سبب الرفض</th><th class="p-3">تاريخ الرفض</th><th class="p-3 text-center">إجراء</th></tr></thead>
+                            <thead class="bg-slate-900 text-rose-300 font-bold border-b border-slate-700"><tr><th class="p-3">الكود</th><th class="p-3">المريض</th><th class="p-3">الهاتف</th><th class="p-3">التاريخ</th><th class="p-3">سبب الرفض</th><th class="p-3">تاريخ الرفض</th><th class="p-3 text-center">واتساب</th></tr></thead>
                             <tbody id="rejectedBookingsTbody" class="divide-y divide-slate-800 bg-slate-900/40"></tbody>
                         </table>
                     </div>
@@ -1692,25 +1692,20 @@ ${customReply}
             const tbody = document.getElementById('approvedBookingsTbody');
             const badge = document.getElementById('approvedCountBadge');
             if (!tbody || !loggedInClinicId) return;
-            let all = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && !['pending', 'cancelled'].includes(b.status));
-            const badgeAll = document.getElementById('badgeApprovedCount');
-            // For main badge if exists
+            let list = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && !['pending', 'cancelled'].includes(b.status));
+            // بحث
             const searchInput = document.getElementById('approvedSearchInput');
             const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            let list = [...all];
             if(q){
-                const qClean = q.replace(/[^0-9]/g,'');
-                list = all.filter(b => {
-                    const name = (b.patientName || '').toLowerCase();
-                    const phone = (b.phone || '').toLowerCase();
-                    const phoneClean = (b.phone || '').replace(/[^0-9]/g,'');
-                    const ref = (b.refCode || '').toLowerCase();
-                    const date = (b.date || '').toLowerCase();
-                    return name.includes(q) || phone.includes(q) || ref.includes(q) || date.includes(q) || (qClean && phoneClean.includes(qClean));
-                });
+                list = list.filter(b => 
+                    (b.patientName || '').toLowerCase().includes(q) ||
+                    (b.phone || '').toLowerCase().includes(q) ||
+                    (b.refCode || '').toLowerCase().includes(q) ||
+                    (b.date || '').toLowerCase().includes(q) ||
+                    (b.patientAddress || '').toLowerCase().includes(q)
+                );
             }
             if(badge) badge.innerText = list.length;
-            if(badgeAll) badgeAll.innerText = all.length;
             if (!list.length) { 
                 if(q) tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-amber-400 font-bold bg-amber-500/5">لا توجد نتائج للبحث عن "${q}"</td></tr>`;
                 else tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات معتمدة.</td></tr>`; 
@@ -1718,46 +1713,11 @@ ${customReply}
             }
             tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => {
                 const waNum = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone) : (b.phone||'').replace(/[^0-9]/g,'');
-                return `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}</td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-teal-300">${b.date}</td><td class="p-3 font-mono font-black text-amber-400">#${b.queueNumber || '-'}</td><td class="p-3 font-bold text-emerald-400">${b.status === 'completed' ? 'تم الكشف ✅' : 'بالانتظار ⏳'}</td><td class="p-3 text-center"><a href="https://wa.me/${waNum}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-lg text-[10px]"><i class="fa-brands fa-whatsapp"></i></a></td></tr>`;
+                return `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}<span class="block text-[10px] text-teal-300 font-normal">${b.patientAddress || ''}</span></td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-teal-300">${b.date}</td><td class="p-3 font-mono font-black text-amber-400">#${b.queueNumber || '-'}</td><td class="p-3 font-bold text-emerald-400">${b.status === 'completed' ? 'تم الكشف ✅' : 'بالانتظار ⏳'}</td><td class="p-3 text-center"><a href="https://wa.me/${waNum}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-lg text-[10px]"><i class="fa-brands fa-whatsapp"></i></a></td></tr>`;
             }).join('');
+            // حدث جدول المرفوضة أيضاً
+            if(typeof renderRejectedBookingsTable === 'function') renderRejectedBookingsTable();
         }
-
-        function renderRejectedBookingsTable(){
-            const tbody = document.getElementById('rejectedBookingsTbody');
-            const badge = document.getElementById('rejectedCountBadge');
-            const badge2 = document.getElementById('badgeRejectedCount');
-            if(!tbody || !loggedInClinicId) return;
-            let allRejected = bookingsList.filter(b => Number(b.clinicId) === Number(loggedInClinicId) && b.status === 'cancelled');
-            if(badge2) badge2.innerText = allRejected.length;
-            let list = [...allRejected];
-            const searchInput = document.getElementById('rejectedSearchInput');
-            const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            if(q){
-                const qClean = q.replace(/[^0-9]/g,'');
-                list = allRejected.filter(b => {
-                    const name = (b.patientName || '').toLowerCase();
-                    const phone = (b.phone || '').toLowerCase();
-                    const phoneClean = (b.phone || '').replace(/[^0-9]/g,'');
-                    const ref = (b.refCode || '').toLowerCase();
-                    const reason = (b.rejectionReason || '').toLowerCase();
-                    return name.includes(q) || phone.includes(q) || ref.includes(q) || reason.includes(q) || (qClean && phoneClean.includes(qClean));
-                });
-            }
-            if(badge) badge.innerText = list.length;
-            if(!list.length){
-                if(q) tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-amber-400 font-bold bg-amber-500/5">لا توجد نتائج للبحث عن "${q}"</td></tr>`;
-                else tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات مرفوضة. عند رفض أي حجز سيظهر هنا تلقائياً.</td></tr>`;
-                return;
-            }
-            tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => {
-                const waNum = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone) : (b.phone||'').replace(/[^0-9]/g,'');
-                return `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}</td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-slate-400">${b.date}</td><td class="p-3 text-rose-300 font-bold text-[11px] bg-rose-500/5 rounded-lg">${b.rejectionReason || '-'}</td><td class="p-3 text-[10px] text-slate-500 font-mono">${b.rejectedAt ? new Date(b.rejectedAt).toLocaleString('ar-EG') : '-'}</td><td class="p-3 text-center"><a href="https://wa.me/${waNum}" target="_blank" class="bg-emerald-600/20 text-emerald-300 px-2 py-1 rounded-lg text-[10px]"><i class="fa-brands fa-whatsapp"></i></a></td></tr>`;
-            }).join('');
-        }
-
-        window.clearApprovedSearch = function(){ const el=document.getElementById('approvedSearchInput'); if(el){ el.value=''; renderApprovedBookingsTable(); } };
-        window.clearRejectedSearch = function(){ const el=document.getElementById('rejectedSearchInput'); if(el){ el.value=''; renderRejectedBookingsTable(); } };
-
 
         function renderRejectedBookingsTable(){
             const tbody = document.getElementById('rejectedBookingsTbody');
