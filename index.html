@@ -1543,39 +1543,57 @@ ${customReply}
             }
             const b = bookingsList.find(x=> String(x.id) === String(_rejectBookingId) || x.id === _rejectBookingId);
             if(!b){ window.showToast('❌ الحجز غير موجود', '❌'); return; }
-            // افتح واتساب فوراً قبل أي await لتجنب حظر المتصفح
+
+            // 1. افتح واتساب فوراً قبل أي شيء
             if(withWhatsApp){
-                const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
-                const phone = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone || '') : (b.phone || '').replace(/[^0-9]/g,'');
-                const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋
-
-من ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}
-
-نأسف، تم رفض حجزك بتاريخ ${b.date}
-كود الحجز: ${b.refCode}
-
-📌 سبب الرفض:
-${reason}
-
-يمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.
-
-شكراً لتفهمك 🙏`);
-                const waUrl = `https://wa.me/${phone}?text=${msg}`;
-                window.open(waUrl, '_blank');
+                try{
+                    const clinic = clinicsList.find(x=> Number(x.id) === Number(b.clinicId));
+                    const phone = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone || '') : (b.phone || '').replace(/[^0-9]/g,'');
+                    const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋\n\nمن ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}\n\nنأسف، تم رفض حجزك بتاريخ ${b.date}\nكود الحجز: ${b.refCode}\n\n📌 سبب الرفض:\n${reason}\n\nيمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.\n\nشكراً لتفهمك 🙏`);
+                    const waUrl = `https://wa.me/${phone}?text=${msg}`;
+                    window.open(waUrl, '_blank');
+                }catch(e){ console.error('WA error', e); }
             }
+
+            // 2. حدث محلياً فوراً لضمان ظهوره في سجل المرفوضة حتى لو Firebase فشل
+            try{
+                b.status = 'cancelled';
+                b.rejectionReason = reason;
+                b.rejectedAt = new Date().toISOString();
+                b.rejectedBy = currentClinicRole || 'secretary';
+                console.log('✅ رفض محلي:', b);
+            }catch(e){ console.error(e); }
+
+            // 3. حدث الجداول فوراً
+            try{
+                renderPendingRequestsTable();
+                if(typeof renderRejectedBookingsTable === 'function') renderRejectedBookingsTable();
+                if(typeof renderApprovedBookingsTable === 'function') renderApprovedBookingsTable();
+                // افتح تبويب المعتمدة لترى المرفوضة
+                window.showToast(`تم رفض حجز ${b.patientName} - ${reason} ✅ راجع سجل المرفوضة`, '🚫');
+            }catch(e){ console.error(e); }
+
+            // 4. اغلق المودال
+            window.closeRejectBookingModal();
+
+            // 5. حاول حفظ في Firebase في الخلفية
             try{
                 if(db && appId){
                     const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
                     const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(_rejectBookingId));
                     await updateDoc(ref, { status: 'cancelled', rejectionReason: reason, rejectedAt: new Date().toISOString(), rejectedBy: currentClinicRole || 'secretary' });
-                } else {
-                    b.status = 'cancelled';
-                    b.rejectionReason = reason;
+                    console.log('✅ تم حفظ الرفض في Firebase');
                 }
-                window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫');
-                renderPendingRequestsTable();
-            }catch(e){ console.error(e); b.status='cancelled'; b.rejectionReason=reason; renderPendingRequestsTable(); window.showToast(`تم رفض حجز ${b.patientName} - ${reason}`, '🚫'); }
-            window.closeRejectBookingModal();
+            }catch(e){ 
+                console.error('Firebase reject failed (محفوظ محلياً فقط):', e);
+                // احفظ في localStorage كـ backup
+                try{
+                    const local = JSON.parse(localStorage.getItem('mawaed_local_bookings')||'[]');
+                    const idx = local.findIndex(x=> String(x.id) === String(_rejectBookingId));
+                    if(idx>-1){ local[idx].status='cancelled'; local[idx].rejectionReason=reason; }
+                    localStorage.setItem('mawaed_local_bookings', JSON.stringify(local));
+                }catch(e2){}
+            }
         };
         window.cancelBooking = window.openRejectBookingModal;
         document.addEventListener('change', function(e){ if(e.target.name === 'rejectReason'){ const box = document.getElementById('customRejectReasonBox'); if(!box) return; if(e.target.value === 'other') box.classList.remove('hidden'); else box.classList.add('hidden'); } });
