@@ -489,36 +489,36 @@
 
     <!-- REJECT BOOKING MODAL - سبب الرفض + واتساب -->
     <div id="rejectBookingModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-md rounded-3xl border border-rose-500/50 p-6 space-y-5 relative shadow-2xl">
-            <button onclick="closeRejectBookingModal()" class="absolute left-5 top-5 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="text-center space-y-1 border-b border-slate-700 pb-3">
-                <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl border border-rose-500/30 mx-auto flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-ban"></i></div>
-                <h3 class="text-base font-black text-white">رفض الحجز وإبلاغ المريض</h3>
-                <p id="rejectPatientName" class="text-xs text-slate-400 font-bold">المريض: -</p>
-                <p id="rejectPatientPhone" class="text-[11px] text-slate-500 font-mono">-</p>
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl border border-rose-500/50 p-4 space-y-3 relative shadow-2xl">
+            <button onclick="closeRejectBookingModal()" class="absolute left-3 top-3 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <div class="text-center space-y-1 border-b border-slate-700 pb-2">
+                <div class="w-9 h-9 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 mx-auto flex items-center justify-center text-sm font-bold"><i class="fa-solid fa-ban"></i></div>
+                <h3 class="text-sm font-black text-white">رفض الحجز</h3>
+                <p id="rejectPatientName" class="text-[11px] text-slate-400 font-bold">المريض: -</p>
+                <p id="rejectPatientPhone" class="text-[10px] text-slate-500 font-mono">-</p>
             </div>
-            <div class="space-y-4">
-                <div class="space-y-2">
-                    <label class="text-xs text-slate-300 font-black flex items-center gap-2"><i class="fa-solid fa-list-check text-rose-400"></i> اختر سبب الرفض *</label>
-                    <div class="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar" id="rejectReasonsList">
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="العيادة مغلقة اليوم - عطلة طارئة" class="accent-rose-500"><span>🏥 العيادة مغلقة اليوم - عطلة طارئة</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="الطبيب في إجازة" class="accent-rose-500"><span>👨‍⚕️ الطبيب في إجازة</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="اكتمال العدد اليوم - يرجى الحجز ليوم آخر" class="accent-rose-500"><span>🔢 اكتمال العدد - احجز يوم آخر</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="الموعد غير مناسب - يرجى اختيار موعد آخر" class="accent-rose-500"><span>📅 الموعد غير مناسب</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="رقم الهاتف غير صحيح - يرجى التأكد" class="accent-rose-500"><span>📞 رقم الهاتف غير صحيح</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-slate-900 border border-slate-700 rounded-xl cursor-pointer hover:border-rose-500/50 transition text-xs font-bold"><input type="radio" name="rejectReason" value="يرجى الاتصال بالعيادة للتوضيح" class="accent-rose-500"><span>☎️ يرجى الاتصال بالعيادة</span></label>
-                        <label class="flex items-center gap-2 p-3 bg-amber-900/30 border border-amber-500/40 rounded-xl cursor-pointer hover:border-amber-500/60 transition text-xs font-black"><input type="radio" name="rejectReason" value="other" class="accent-amber-500"><span>✏️ سبب آخر - أكتب بنفسي</span></label>
+            <div class="space-y-3">
+                <div class="space-y-1.5">
+                    <label class="text-[11px] text-slate-300 font-black flex items-center gap-1.5"><i class="fa-solid fa-list-check text-rose-400"></i> اختر سبب الرفض *</label>
+                    <div class="grid grid-cols-1 gap-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar" id="rejectReasonsList">
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="العيادة مغلقة اليوم - عطلة طارئة" class="accent-rose-500"><span>العيادة مغلقة - عطلة طارئة</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="الطبيب في إجازة" class="accent-rose-500"><span>الطبيب في إجازة</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="اكتمال العدد اليوم - يرجى الحجز ليوم آخر" class="accent-rose-500"><span>اكتمال العدد - احجز يوم آخر</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="الموعد غير مناسب - يرجى اختيار موعد آخر" class="accent-rose-500"><span>الموعد غير مناسب</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="رقم الهاتف غير صحيح - يرجى التأكد" class="accent-rose-500"><span>رقم الهاتف غير صحيح</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:border-rose-500/50 transition text-[11px] font-bold"><input type="radio" name="rejectReason" value="يرجى الاتصال بالعيادة للتوضيح" class="accent-rose-500"><span>يرجى الاتصال بالعيادة</span></label>
+                        <label class="flex items-center gap-2 p-2 bg-amber-900/30 border border-amber-500/40 rounded-lg cursor-pointer hover:border-amber-500/60 transition text-[11px] font-black"><input type="radio" name="rejectReason" value="other" class="accent-amber-500"><span>سبب آخر - أكتب بنفسي</span></label>
                     </div>
                 </div>
-                <div id="customRejectReasonBox" class="hidden space-y-2">
-                    <label class="text-xs text-amber-300 font-black">✏️ اكتب السبب المخصص:</label>
-                    <textarea id="customRejectReason" rows="3" placeholder="مثال: الطبيب مسافر وسيعود السبت..." class="w-full p-3 bg-slate-900 border border-amber-500/40 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400"></textarea>
+                <div id="customRejectReasonBox" class="hidden space-y-1.5">
+                    <label class="text-[11px] text-amber-300 font-black">سبب مخصص:</label>
+                    <textarea id="customRejectReason" rows="2" placeholder="اكتب السبب..." class="w-full p-2 bg-slate-900 border border-amber-500/40 rounded-lg text-[11px] text-white focus:outline-none focus:border-amber-400"></textarea>
                 </div>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button onclick="confirmRejectBooking(false)" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-3.5 rounded-xl text-xs transition shadow-lg"><i class="fa-solid fa-ban ml-1"></i> رفض فقط</button>
-                    <button onclick="confirmRejectBooking(true)" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-3.5 rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-1.5"><i class="fa-brands fa-whatsapp text-base"></i> رفض + واتساب</button>
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button onclick="confirmRejectBooking(false)" class="bg-rose-600 hover:bg-rose-500 text-white font-black py-2.5 rounded-xl text-[11px] transition shadow-lg"><i class="fa-solid fa-ban ml-1"></i> رفض فقط</button>
+                    <button onclick="confirmRejectBooking(true)" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black py-2.5 rounded-xl text-[11px] transition shadow-lg flex items-center justify-center gap-1"><i class="fa-brands fa-whatsapp text-sm"></i> رفض + واتساب</button>
                 </div>
-                <p class="text-[10px] text-slate-500 text-center leading-relaxed">سيظهر السبب للمريض عند تتبع حجزه، ولو اخترت واتساب سيتم فتح رسالة جاهزة فيها السبب والترحيب.</p>
+                <p class="text-[9px] text-slate-500 text-center leading-relaxed">سيظهر السبب للمريض عند تتبع حجزه.</p>
             </div>
         </div>
     </div>
@@ -1837,7 +1837,7 @@ ${customReply}
                 if (found.status === 'pending') { sb = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold">بانتظار اعتماد السكرتارية ⏳</span>`; sm = 'طلبك قيد المراجعة، سيتم تحديد رقم دورك فور الاعتماد.'; }
                 else if (found.status === 'cancelled') { 
                     sb = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الرفض ❌</span>`; 
-                    sm = 'نأسف، تم رفض حجزك. راجع السبب أدناه.';
+                    sm = 'نأسف، تم رفض حجزك. راجع السبب أعلاه.';
                     extraHtml = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2"><p class="text-xs font-black text-rose-300">📌 سبب الرفض:</p><p class="text-sm font-bold text-white bg-slate-900 p-3 rounded-xl border border-rose-500/20">${found.rejectionReason || 'لم يتم تحديد السبب'}</p>${found.rejectedAt ? `<p class="text-[10px] text-slate-500">${new Date(found.rejectedAt).toLocaleString('ar-EG')}</p>` : ''}</div>`;
                 }
                 else if (found.status === 'completed') { sb = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الفحص ✅</span>`; sm = 'نتمنى لك دوام الصحة!'; }
