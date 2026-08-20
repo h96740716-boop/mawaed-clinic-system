@@ -1590,8 +1590,14 @@ ${customReply}
                     const phone = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone || '') : (b.phone || '').replace(/[^0-9]/g,'');
                     const msg = encodeURIComponent(`مرحباً ${b.patientName} 👋\n\nمن ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}\n\nنأسف، تم رفض حجزك بتاريخ ${b.date}\nكود الحجز: ${b.refCode}\n\n📌 سبب الرفض:\n${reason}\n\nيمكنك الحجز ليوم آخر أو الاتصال بنا للتوضيح.\n\nشكراً لتفهمك 🙏`);
                     const waUrl = `https://wa.me/${phone}?text=${msg}`;
-                    window.open(waUrl, '_blank');
-                }catch(e){ console.error('WA error', e); }
+                    const waLink = document.createElement('a');
+                    waLink.href = waUrl;
+                    waLink.target = '_blank';
+                    waLink.rel = 'noopener noreferrer';
+                    document.body.appendChild(waLink);
+                    waLink.click();
+                    document.body.removeChild(waLink);
+                }catch(e){ console.error('WA error', e); window.showToast('❌ فشل فتح الواتساب', '❌'); }
             }
 
             // 2. حدث محلياً فوراً لضمان ظهوره في سجل المرفوضة حتى لو Firebase فشل
@@ -1773,7 +1779,10 @@ ${customReply}
                 tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500 italic">لا توجد حجوزات مرفوضة${q ? ` للبحث "${q}"` : ''}.</td></tr>`;
                 return;
             }
-            tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}</td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-slate-400">${b.date}</td><td class="p-3 text-rose-300 font-bold text-[11px]">${b.rejectionReason || '-'}</td><td class="p-3 text-[10px] text-slate-500 font-mono">${b.rejectedAt ? new Date(b.rejectedAt).toLocaleString('ar-EG') : '-'}</td></tr>`).join('');
+            tbody.innerHTML = list.slice().sort((a,b)=> b.id - a.id).map(b => {
+                const waNum = (typeof toWhatsAppNumber === 'function') ? toWhatsAppNumber(b.phone || '') : (b.phone||'').replace(/[^0-9]/g,'');
+                return `<tr class="hover:bg-slate-800/60 border-b border-slate-800 transition"><td class="p-3 font-mono font-bold text-amber-400">${b.refCode}</td><td class="p-3 font-bold text-white">${b.patientName}</td><td class="p-3 font-mono">${b.phone}</td><td class="p-3 font-bold text-slate-400">${b.date}</td><td class="p-3 text-rose-300 font-bold text-[11px]">${b.rejectionReason || '-'}</td><td class="p-3 text-[10px] text-slate-500 font-mono">${b.rejectedAt ? new Date(b.rejectedAt).toLocaleString('ar-EG') : '-'}</td><td class="p-3 text-center"><a href="https://wa.me/${waNum}" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-lg text-[10px]"><i class="fa-brands fa-whatsapp"></i></a></td></tr>`;
+            }).join('');
         }
         window.renderRejectedBookingsTable = renderRejectedBookingsTable;
 
