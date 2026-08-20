@@ -1549,7 +1549,7 @@ ${customReply}
         }
         window.renderPendingRequestsTable = renderPendingRequestsTable;
         window.clearPendingDateFilter = () => { document.getElementById('filterPendingDate').value = ''; renderPendingRequestsTable(); };
-        window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await updateDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error(err); window.showToast('❌ فشل الاعتماد!', '❌'); } };
+        window.approveBooking = async function(id) { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) { window.showToast('❌ المستخدم غير مسجل أو الحجز غير موجود!', '❌'); return; } const q = bookingsList.filter(x => Number(x.clinicId) === Number(b.clinicId) && x.date === b.date && !['pending', 'cancelled'].includes(x.status)).length + 1; try { await setDoc(getPublicDoc('bookings', id), { status: 'approved', queueNumber: q }, { merge: true }); window.showToast(`تم اعتماد حجز (${b.patientName}) برقم دور (${q})`, '✅'); } catch (err) { console.error('❌ approveBooking error:', err); window.showToast(`❌ فشل الاعتماد! ${err.message || err.code || ''}`, '❌'); } };
         
         let _rejectBookingId = null;
         window.openRejectBookingModal = function(id){
@@ -1625,9 +1625,9 @@ ${customReply}
             // 5. حاول حفظ في Firebase في الخلفية
             try{
                 if(db && appId){
-                    const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
                     const ref = doc(db, 'artifacts', appId, 'public', 'data', 'bookings', String(_rejectBookingId));
-                    await updateDoc(ref, { status: 'cancelled', rejectionReason: reason, rejectedAt: new Date().toISOString(), rejectedBy: currentClinicRole || 'secretary' });
+                    await setDoc(ref, { status: 'cancelled', rejectionReason: reason, rejectedAt: new Date().toISOString(), rejectedBy: currentClinicRole || 'secretary' }, { merge: true });
                     console.log('✅ تم حفظ الرفض في Firebase');
                 }
             }catch(e){ 
@@ -1723,7 +1723,7 @@ ${customReply}
         window.advanceQueueTurn = async function(d) { const today = new Date().toISOString().split('T')[0]; const n = Math.max(1, getActiveCurrentTurn(loggedInClinicId, today) + d); await setActiveCurrentTurn(loggedInClinicId, today, n); const mp = bookingsList.find(b => Number(b.clinicId) === Number(loggedInClinicId) && b.date === today && Number(b.queueNumber) === n); speakQueueAnnouncement(n, mp?.patientName || ''); window.showToast(`الدور الحالي: #${n}`, '🔊'); };
         window.callSpecificTurn = async (n, name) => { const today = new Date().toISOString().split('T')[0]; await setActiveCurrentTurn(loggedInClinicId, today, n); speakQueueAnnouncement(n, name); window.showToast(`نداء على الدور #${n}`, '🔊'); };
         window.repeatCurrentAudio = function() { const today = new Date().toISOString().split('T')[0]; const n = getActiveCurrentTurn(loggedInClinicId, today); const mp = bookingsList.find(b => Number(b.clinicId) === Number(loggedInClinicId) && b.date === today && Number(b.queueNumber) === n); speakQueueAnnouncement(n, mp?.patientName || ''); };
-        window.toggleQueueCompleted = async (id) => { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; try { await updateDoc(getPublicDoc('bookings', id), { status: b.status === 'approved' ? 'completed' : 'approved' }); } catch (e) { console.error(e); } };
+        window.toggleQueueCompleted = async (id) => { const b = bookingsList.find(x => x.id === id); if (!b || !currentUser) return; try { await setDoc(getPublicDoc('bookings', id), { status: b.status === 'approved' ? 'completed' : 'approved' }, { merge: true }); } catch (e) { console.error(e); } };
 
         function renderApprovedBookingsTable() {
             const tbody = document.getElementById('approvedBookingsTbody');
