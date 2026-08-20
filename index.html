@@ -1823,32 +1823,38 @@ ${customReply}
             const q = document.getElementById('searchTicketInput').value.trim().toLowerCase();
             const res = document.getElementById('ticketSearchResult');
             if (!q) return;
-            const qClean = q.replace(/[^0-9]/g,''); const found = bookingsList.find(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').toLowerCase().includes(q) || (b.phone || '').replace(/[^0-9]/g,'').includes(qClean) || (qClean && (b.phone || '').replace(/[^0-9]/g,'').includes(qClean)) );
+            const qClean = q.replace(/[^0-9]/g,'');
+            const foundList = bookingsList.filter(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').toLowerCase().includes(q) || (b.phone || '').replace(/[^0-9]/g,'').includes(qClean) || (qClean && (b.phone || '').replace(/[^0-9]/g,'').includes(qClean)) );
             res.classList.remove('hidden');
-            if (!found) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
-            const ct = getActiveCurrentTurn(found.clinicId, found.date);
-            const mqn = found.queueNumber || 0;
-            const ahead = Math.max(0, mqn - ct);
-            let sb = '', sm = '', extraHtml = '';
-            if (found.status === 'pending') { sb = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold">بانتظار اعتماد السكرتارية ⏳</span>`; sm = 'طلبك قيد المراجعة، سيتم تحديد رقم دورك فور الاعتماد.'; }
-            else if (found.status === 'cancelled') { 
-                sb = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الرفض ❌</span>`; 
-                sm = 'نأسف، تم رفض حجزك. راجع السبب أدناه.';
-                extraHtml = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2"><p class="text-xs font-black text-rose-300">📌 سبب الرفض:</p><p class="text-sm font-bold text-white bg-slate-900 p-3 rounded-xl border border-rose-500/20">${found.rejectionReason || 'لم يتم تحديد السبب'}</p>${found.rejectedAt ? `<p class="text-[10px] text-slate-500">${new Date(found.rejectedAt).toLocaleString('ar-EG')}</p>` : ''}</div>`;
+            if (!foundList.length) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
+            function renderOneBooking(found){
+                const clinic = clinicsList.find(c => Number(c.id) === Number(found.clinicId));
+                const ct = getActiveCurrentTurn(found.clinicId, found.date);
+                const mqn = found.queueNumber || 0;
+                const ahead = Math.max(0, mqn - ct);
+                let sb = '', sm = '', extraHtml = '';
+                if (found.status === 'pending') { sb = `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-bold">بانتظار اعتماد السكرتارية ⏳</span>`; sm = 'طلبك قيد المراجعة، سيتم تحديد رقم دورك فور الاعتماد.'; }
+                else if (found.status === 'cancelled') { 
+                    sb = `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الرفض ❌</span>`; 
+                    sm = 'نأسف، تم رفض حجزك. راجع السبب أدناه.';
+                    extraHtml = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl space-y-2"><p class="text-xs font-black text-rose-300">📌 سبب الرفض:</p><p class="text-sm font-bold text-white bg-slate-900 p-3 rounded-xl border border-rose-500/20">${found.rejectionReason || 'لم يتم تحديد السبب'}</p>${found.rejectedAt ? `<p class="text-[10px] text-slate-500">${new Date(found.rejectedAt).toLocaleString('ar-EG')}</p>` : ''}</div>`;
+                }
+                else if (found.status === 'completed') { sb = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الفحص ✅</span>`; sm = 'نتمنى لك دوام الصحة!'; }
+                else if (found.status === 'approved') {
+                    if (mqn === ct) { sb = `<span class="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-xs animate-bounce">🔥 الدور عليك الآن!</span>`; sm = 'توجه فوراً لغرفة الفحص!'; }
+                    else if (mqn === ct + 1) { sb = `<span class="bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-black">أنت التالي مباشرة ⏳</span>`; sm = 'استعد، أنت التالي.'; }
+                    else { sb = `<span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1 rounded-full text-xs font-bold">في الانتظار 📱</span>`; sm = `متبقي أمامك (${ahead}) مرضى. يمكنك الراحة من منزلك!`; }
+                }
+                return `<div class="bg-slate-900 p-5 rounded-2xl border border-teal-500/30 space-y-4 shadow-xl">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3"><div><span class="text-[10px] text-teal-400 font-bold block">الكود المرجعي</span><span class="font-mono font-black text-amber-400 text-base">${found.refCode}</span></div><div>${sb}</div></div>
+                    ${clinic ? `<div class="flex items-center gap-2 bg-teal-500/10 border border-teal-500/20 rounded-xl px-3 py-2"><i class="fa-solid fa-hospital text-teal-400 text-xs"></i><span class="text-xs font-bold text-teal-300">${clinic.name}</span><span class="text-[10px] text-slate-400">— ${clinic.doctorName}</span></div>` : ''}
+                    <div class="grid grid-cols-2 gap-3 text-xs"><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">المريض</span><span class="font-bold text-white">${found.patientName} (${found.patientAge || '-'} سنة)</span></div><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">طريقة الدفع</span><span class="font-bold text-amber-300">${found.paymentMethod || 'كاش'}</span></div></div>
+                    ${extraHtml}
+                    ${found.status === 'approved' ? `<div class="grid grid-cols-3 gap-2 text-center"><div class="bg-slate-800/90 p-3 rounded-xl border border-amber-500/30"><span class="text-[10px] text-amber-300 font-bold block">رقم دورك</span><span class="font-mono font-black text-amber-400 text-xl">#${mqn}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-teal-500/30"><span class="text-[10px] text-teal-300 font-bold block">الدور الحالي</span><span class="font-mono font-black text-teal-400 text-xl">#${ct}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-emerald-500/30"><span class="text-[10px] text-emerald-300 font-bold block">قبلك</span><span class="font-mono font-black text-emerald-400 text-xl">${ahead}</span></div></div>` : ''}
+                    <div class="p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl text-center text-teal-200 font-bold text-xs"><i class="fa-solid fa-circle-info text-teal-400 ml-1"></i>${sm}</div>
+                </div>`;
             }
-            else if (found.status === 'completed') { sb = `<span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold">تم الفحص ✅</span>`; sm = 'نتمنى لك دوام الصحة!'; }
-            else if (found.status === 'approved') {
-                if (mqn === ct) { sb = `<span class="bg-amber-400 text-slate-950 font-black px-3 py-1 rounded-full text-xs animate-bounce">🔥 الدور عليك الآن!</span>`; sm = 'توجه فوراً لغرفة الفحص!'; }
-                else if (mqn === ct + 1) { sb = `<span class="bg-amber-500/30 text-amber-300 border border-amber-500/40 px-3 py-1 rounded-full text-xs font-black">أنت التالي مباشرة ⏳</span>`; sm = 'استعد، أنت التالي.'; }
-                else { sb = `<span class="bg-teal-500/20 text-teal-300 border border-teal-500/30 px-3 py-1 rounded-full text-xs font-bold">في الانتظار 📱</span>`; sm = `متبقي أمامك (${ahead}) مرضى. يمكنك الراحة من منزلك!`; }
-            }
-            res.innerHTML = `<div class="bg-slate-900 p-5 rounded-2xl border border-teal-500/30 space-y-4 shadow-xl">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-3"><div><span class="text-[10px] text-teal-400 font-bold block">الكود المرجعي</span><span class="font-mono font-black text-amber-400 text-base">${found.refCode}</span></div><div>${sb}</div></div>
-                <div class="grid grid-cols-2 gap-3 text-xs"><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">المريض</span><span class="font-bold text-white">${found.patientName} (${found.patientAge || '-'} سنة)</span></div><div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700/60"><span class="text-slate-400 block text-[10px]">طريقة الدفع</span><span class="font-bold text-amber-300">${found.paymentMethod || 'كاش'}</span></div></div>
-                ${extraHtml}
-                ${found.status === 'approved' ? `<div class="grid grid-cols-3 gap-2 text-center"><div class="bg-slate-800/90 p-3 rounded-xl border border-amber-500/30"><span class="text-[10px] text-amber-300 font-bold block">رقم دورك</span><span class="font-mono font-black text-amber-400 text-xl">#${mqn}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-teal-500/30"><span class="text-[10px] text-teal-300 font-bold block">الدور الحالي</span><span class="font-mono font-black text-teal-400 text-xl">#${ct}</span></div><div class="bg-slate-800/90 p-3 rounded-xl border border-emerald-500/30"><span class="text-[10px] text-emerald-300 font-bold block">قبلك</span><span class="font-mono font-black text-emerald-400 text-xl">${ahead}</span></div></div>` : ''}
-                <div class="p-3 bg-teal-500/10 border border-teal-500/20 rounded-xl text-center text-teal-200 font-bold text-xs"><i class="fa-solid fa-circle-info text-teal-400 ml-1"></i>${sm}</div>
-            </div>`;
+            res.innerHTML = foundList.map(renderOneBooking).join('<div class="border-t border-slate-700 my-4"></div>');
         };
 
         // STARTUP
