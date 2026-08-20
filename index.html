@@ -1323,7 +1323,12 @@ ${customReply}
                 // ✅ Toast تظهر فقط بعد نجاح الكتابة في Firebase
                 window.closeBookingModal();
                 document.getElementById('bookingForm').reset();
-                window.showToast(`✅ تم تأكيد حجزك! كودك المرجعي: ${refCode} — احفظه الآن للاستفسار عن دورك`, '🎉', 15000);
+                // بانر كبير يظهر الكود بوضوح
+                const codeBanner = document.createElement('div');
+                codeBanner.className = 'fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4';
+                codeBanner.innerHTML = `<div class="bg-gradient-to-br from-slate-800 to-slate-900 w-full max-w-sm rounded-3xl border-2 border-emerald-500/60 p-6 space-y-4 text-center shadow-2xl animate-bounce"><div class="text-3xl">✅</div><h3 class="text-base font-black text-white">تم تأكيد حجزك بنجاح!</h3><div class="bg-emerald-500/20 border-2 border-emerald-400 rounded-2xl py-3 px-4"><p class="text-[11px] text-emerald-300 font-bold mb-1">كود الحجز المرجعي:</p><p class="text-2xl font-black text-emerald-400 font-mono tracking-wider">${refCode}</p></div><p class="text-[11px] text-amber-400 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> احفظ الكود ده دلوقتي!</p><p class="text-[10px] text-slate-400">هنحتاجه لتتبع دورك أو الاستفسار عن حجزك</p><button onclick="this.closest('.fixed').remove()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3 rounded-xl text-sm transition">فهمت ✓</button></div>`;
+                document.body.appendChild(codeBanner);
+                codeBanner.addEventListener('click', (e) => { if (e.target === codeBanner) codeBanner.remove(); });
             } catch (err) {
                 console.error("❌ Booking failed:", err);
                 // ✅ رسالة خطأ واضحة — الحجز لم يصل
