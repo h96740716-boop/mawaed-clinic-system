@@ -358,10 +358,13 @@
                         <div><label class="text-slate-300 font-bold block mb-1">رابط صورة الطبيب (URL)</label><input type="url" id="tabEditDoctorImage" placeholder="https://..." class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono text-xs"></div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label class="text-slate-300 font-bold block mb-1">سعر الكشف (ج.م) *</label><input type="number" id="tabEditClinicPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                            <div><label class="text-slate-300 font-bold block mb-1">سعر الاستشارة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">سعر الإعادة (ج.م) *</label><input type="number" id="tabEditConsultPrice" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
                         </div>
                         <div><label class="text-slate-300 font-bold block mb-1">جدول مواعيد العمل *</label><input type="text" id="tabEditClinicSchedule" required placeholder="مثال: السبت إلى الأربعاء (4م - 10م)" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
-                        <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div><label class="text-slate-300 font-bold block mb-1">عنوان المكان *</label><input type="text" id="tabEditClinicAddress" required class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400"></div>
+                            <div><label class="text-slate-300 font-bold block mb-1">رقم تليفون العيادة *</label><input type="tel" id="tabEditClinicPhone" required placeholder="010xxxxxxxx" class="w-full p-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-amber-400 font-mono"></div>
+                        </div>
                         <!-- 🔐 بيانات دخول الطبيب والسكرتيرة -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-amber-500/20 mt-2">
                             <div class="col-span-2"><p class="text-amber-400 font-black text-[11px] flex items-center gap-1"><i class="fa-solid fa-user-doctor"></i> بيانات دخول الطبيب:</p></div>
@@ -1021,6 +1024,7 @@
                         <div class="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-slate-700/50">
                             <p class="flex items-center gap-2"><i class="fa-solid fa-clock text-amber-400 text-[10px]"></i> ${c.schedule}</p>
                             <p class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-teal-400 text-[10px]"></i> ${c.address}</p>
+                            <p class="flex items-center gap-2 font-bold"><i class="fa-solid fa-phone text-emerald-400 text-[10px]"></i> <span class="font-mono text-emerald-300">${c.phone || 'لا يوجد'}</span> <a href="tel:${(c.phone||'').replace(/[^0-9]/g,'')}" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[9px] mr-2 hover:bg-emerald-500/30">اتصال</a></p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-700/60">
@@ -1152,8 +1156,7 @@ ${clinicName}`);
             if(!customReply){ window.showToast('اكتب الرد أولاً!', '⚠️'); return; }
             const clinic = clinicsList.find(x=> Number(x.id) === Number(loggedInClinicId));
             const rawPhone = (inq.phone || '');
-                const cleanPhone = toWhatsAppNumber(rawPhone);
-                const displayPhone = toWhatsAppNumber(inq.phone || '');
+            const cleanPhone = toWhatsAppNumber(rawPhone);
             const msg = encodeURIComponent(`مرحباً ${inq.patientName} 👋
 
 من ${clinic?.name || 'العيادة'} - ${clinic?.doctorName || ''}
@@ -1164,21 +1167,7 @@ ${customReply}
 
 شكراً لتواصلك 🌹`);
             window.open(`https://wa.me/${cleanPhone}?text=${msg}`, '_blank');
-            window.handleInquiryWhatsAppReply = async function(inqId){
-            const inq = inquiriesList.find(x=> x.id === inqId);
-            if(!inq) return;
-            inquiriesList = inquiriesList.filter(x=> x.id !== inqId);
-            renderInquiriesList();
-            window.showToast('✅ تم الرد وحذف الاستفسار', '✅');
-            try{
-                if(db && appId){
-                    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
-                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inqId));
-                    await deleteDoc(ref);
-                }
-            }catch(e){ console.error(e); }
-        };
-        window.toggleInquiryStatus(inqId);
+            setTimeout(()=> handleInquiryWhatsAppReply(inqId), 800);
             if(input) input.value='';
         };
 
@@ -1196,8 +1185,34 @@ ${customReply}
                 }
             }catch(e){ console.error(e); }
         };
-        window.toggleInquiryStatus = async (id) => { const i = inquiriesList.find(x => x.id === id); if (!i || !currentUser) return; try { await updateDoc(getPublicDoc('inquiries', id), { status: i.status === 'pending' ? 'replied' : 'pending', repliedAt: i.status === 'pending' ? new Date().toISOString() : null }); } catch (e) { console.error(e); } };
-        window.deleteInquiry = async (id) => { if (!currentUser) return; try { await deleteDoc(getPublicDoc('inquiries', id)); } catch (e) { console.error(e); } };
+        window.handleInquiryWhatsAppReply = async function(inqId){
+            const inq = inquiriesList.find(x=> x.id === inqId);
+            if(!inq) return;
+            inquiriesList = inquiriesList.filter(x=> x.id !== inqId);
+            renderInquiriesList();
+            window.showToast('✅ تم الرد وحذف الاستفسار', '✅');
+            try{
+                if(db && appId){
+                    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(inqId));
+                    await deleteDoc(ref);
+                }
+            }catch(e){ console.error(e); }
+        };
+                window.toggleInquiryStatus = function(id){ handleInquiryWhatsAppReply(id); };
+
+        window.deleteInquiry = async function(id){
+            if(!confirm('هل تريد حذف هذا الاستفسار؟')) return;
+            inquiriesList = inquiriesList.filter(x=> x.id !== id);
+            renderInquiriesList();
+            try{
+                if(db && appId){
+                    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'inquiries', String(id));
+                    await deleteDoc(ref);
+                }
+            }catch(e){}
+        };
 
         window.openBookingModal = function(clinicId) {
             selectedBookingClinicId = clinicId;
@@ -1291,9 +1306,9 @@ ${customReply}
         function populateSettingsTab() {
             const c = clinicsList.find(x => Number(x.id) === Number(loggedInClinicId));
             if (!c) return;
-            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress'].forEach(id => {
+            ['tabEditClinicName', 'tabEditDoctorName', 'tabEditDoctorImage', 'tabEditClinicPrice', 'tabEditConsultPrice', 'tabEditClinicSchedule', 'tabEditClinicAddress', 'tabEditClinicPhone'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address }[id];
+                if (el) el.value = { tabEditClinicName: c.name, tabEditDoctorName: c.doctorName, tabEditDoctorImage: c.doctorImage || '', tabEditClinicPrice: c.price, tabEditConsultPrice: c.consultPrice, tabEditClinicSchedule: c.schedule, tabEditClinicAddress: c.address, tabEditClinicPhone: c.phone || '' }[id];
             });
             // عرض البريد الإلكتروني الحالي من Firebase Auth
             const emailDisplay = document.getElementById('currentEmailDisplay');
@@ -1374,6 +1389,7 @@ ${customReply}
                 doctorImage: document.getElementById('tabEditDoctorImage').value.trim(), 
                 price: Number(document.getElementById('tabEditClinicPrice').value), 
                 consultPrice: Number(document.getElementById('tabEditConsultPrice').value), 
+                phone: document.getElementById('tabEditClinicPhone') ? document.getElementById('tabEditClinicPhone').value.trim() : (c.phone || ''),
                 schedule: document.getElementById('tabEditClinicSchedule').value.trim(), 
                 address: document.getElementById('tabEditClinicAddress').value.trim(),
                 doctorEmail: document.getElementById('tabEditDoctorEmail').value.trim().toLowerCase(),
