@@ -637,7 +637,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app-check.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ================================================================
@@ -932,6 +932,14 @@
                 currentClinicRole = foundRole;
                 localStorage.setItem('mawaed_logged_clinic_id', String(foundClinic.id));
                 localStorage.setItem('mawaed_logged_role', foundRole);
+                // Firebase Auth login (non-anonymous) for Firestore permissions
+                try {
+                    let authCred;
+                    try { authCred = await signInWithEmailAndPassword(auth, email, pass); }
+                    catch(fbaErr) { if(fbaErr.code === 'auth/user-not-found') { authCred = await createUserWithEmailAndPassword(auth, email, pass); } else { throw fbaErr; } }
+                    currentUser = authCred.user;
+                    console.log('✅ Firebase Auth login succeeded (non-anonymous)');
+                } catch(authErr) { console.warn('⚠️ Firebase Auth login failed, keeping anonymous:', authErr.message); }
                 window.closeClinicLoginModal();
                 window.updateNavState();
                 window.showView('clinicDashboard');
