@@ -821,6 +821,23 @@
                 renderClinicCards();
                 if (loggedInClinicId) renderClinicDashboard();
             }
+
+            // Auto re-login: لو في session محفوظة، سجل دخول Firebase Auth تاني
+            if (loggedInClinicId && clinicsList.length > 0) {
+                try {
+                    const savedRole = localStorage.getItem('mawaed_logged_role');
+                    const clinic = clinicsList.find(c => String(c.id) === String(loggedInClinicId));
+                    if (clinic) {
+                        const email = (savedRole === 'doctor') ? clinic.doctorEmail : clinic.secEmail;
+                        const pass = (savedRole === 'doctor') ? clinic.doctorPass : clinic.secPass;
+                        if (email && pass) {
+                            const authCred = await signInWithEmailAndPassword(auth, email, pass);
+                            currentUser = authCred.user;
+                            console.log('✅ Auto re-login succeeded, provider:', currentUser.providerData[0]?.providerId);
+                        }
+                    }
+                } catch(e) { console.warn('⚠️ Auto re-login failed:', e.message); }
+            }
         }
 
         window.showToast = function(msg, icon = '✅', duration = 5000) {
@@ -936,10 +953,14 @@
                 try {
                     let authCred;
                     try { authCred = await signInWithEmailAndPassword(auth, email, pass); }
-                    catch(fbaErr) { if(fbaErr.code === 'auth/user-not-found') { authCred = await createUserWithEmailAndPassword(auth, email, pass); } else { throw fbaErr; } }
+                    catch(fbaErr) {
+                        if(fbaErr.code === 'auth/user-not-found' || fbaErr.code === 'auth/invalid-credential' || fbaErr.code === 'auth/wrong-password' || fbaErr.code === 'auth/invalid-login-credentials') {
+                            authCred = await createUserWithEmailAndPassword(auth, email, pass);
+                        } else { throw fbaErr; }
+                    }
                     currentUser = authCred.user;
-                    console.log('✅ Firebase Auth login succeeded (non-anonymous)');
-                } catch(authErr) { console.warn('⚠️ Firebase Auth login failed, keeping anonymous:', authErr.message); }
+                    console.log('✅ Firebase Auth login succeeded (non-anonymous), provider:', currentUser.providerData[0]?.providerId);
+                } catch(authErr) { console.error('❌ Firebase Auth login failed:', authErr.code, authErr.message); }
                 window.closeClinicLoginModal();
                 window.updateNavState();
                 window.showView('clinicDashboard');
