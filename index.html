@@ -456,14 +456,15 @@
             <div class="text-center space-y-1 border-b border-slate-700 pb-3">
                 <div class="w-12 h-12 bg-teal-500/20 text-teal-400 rounded-2xl border border-teal-500/30 mx-auto flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-mobile-screen-button"></i></div>
                 <h3 class="text-base font-black text-white">تتبع دورك لايف من البيت</h3>
-                <p class="text-xs text-slate-400">ادخل رقم الهاتف أو كود الحجز</p>
+                <p class="text-xs text-slate-400">ادخل الكود المرجعي فقط</p>
             </div>
             <div class="space-y-2">
-                <label class="text-xs text-slate-300 font-bold">أدخل رقم الهاتف أو الكود المرجعي:</label>
+                <label class="text-xs text-slate-300 font-bold">أدخل الكود المرجعي للحجز:</label>
                 <div class="flex gap-2">
-                    <input type="text" id="searchTicketInput" placeholder="010xxxxxxx أو MW-82910" class="flex-grow p-3 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 font-mono">
+                    <input type="text" id="searchTicketInput" placeholder="مثال: MW-82910" class="flex-grow p-3 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 font-mono">
                     <button onclick="searchRequestStatus()" class="bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 font-black px-5 rounded-xl text-xs transition">بحث 🔍</button>
                 </div>
+                <p class="text-[10px] text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> الكود المرجعي يظهر عند تأكيد الحجز — احفظه للاستفسار عن دورك</p>
             </div>
             <div id="ticketSearchResult" class="hidden pt-3 border-t border-slate-700/80 text-xs space-y-3"></div>
         </div>
@@ -822,7 +823,7 @@
             }
         }
 
-        window.showToast = function(msg, icon = '✅') {
+        window.showToast = function(msg, icon = '✅', duration = 5000) {
             const c = document.getElementById('toastContainer');
             if (!c) return;
             const t = document.createElement('div');
@@ -830,7 +831,7 @@
             t.innerHTML = `<span class="text-base">${icon}</span><span>${msg}</span>`;
             c.appendChild(t);
             setTimeout(() => t.classList.remove('translate-y-2', 'opacity-0'), 10);
-            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, 5000);
+            setTimeout(() => { t.classList.add('opacity-0'); setTimeout(() => t.remove(), 300); }, duration);
         };
 
         window.updateNavState = function() {
@@ -1293,7 +1294,7 @@ ${customReply}
                 // ✅ Toast تظهر فقط بعد نجاح الكتابة في Firebase
                 window.closeBookingModal();
                 document.getElementById('bookingForm').reset();
-                window.showToast(`✅ وصل حجزك للعيادة! كود الحجز: (${refCode})`, '🎉');
+                window.showToast(`✅ تم تأكيد حجزك! كودك المرجعي: ${refCode} — احفظه الآن للاستفسار عن دورك`, '🎉', 15000);
             } catch (err) {
                 console.error("❌ Booking failed:", err);
                 // ✅ رسالة خطأ واضحة — الحجز لم يصل
@@ -1824,7 +1825,7 @@ ${customReply}
             const res = document.getElementById('ticketSearchResult');
             if (!q) return;
             const qClean = q.replace(/[^0-9]/g,'');
-            const foundList = bookingsList.filter(b => (b.refCode || '').toLowerCase() === q || (b.phone || '').toLowerCase().includes(q) || (b.phone || '').replace(/[^0-9]/g,'').includes(qClean) || (qClean && (b.phone || '').replace(/[^0-9]/g,'').includes(qClean)) );
+            const foundList = bookingsList.filter(b => (b.refCode || '').toLowerCase() === q || (b.refCode || '').toLowerCase().includes(q) );
             res.classList.remove('hidden');
             if (!foundList.length) { res.innerHTML = `<div class="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl text-center text-rose-300 font-bold"><i class="fa-solid fa-circle-exclamation text-lg mb-1 block"></i>لم يتم العثور على أي كشف.</div>`; return; }
             function renderOneBooking(found){
